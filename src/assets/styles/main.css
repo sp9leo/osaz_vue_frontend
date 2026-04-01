@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/* Custom styles */
+:root {
+  --primary-color: #1a73e8;
+}
+
+.page-content {
+  padding-top: 0 !important;
+}
+
+.container {
+  padding-top: 0 !important;
+}
+
+.page-header {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Weather Widget */
+.weather-mini-card {
+  @apply bg-white border border-gray-200 rounded-xl p-3 inline-flex gap-5 shadow-sm;
+}
+
+.date-mini-card {
+  @apply bg-white border-r border-gray-200 rounded-xl p-2 inline-flex gap-2;
+}
+
+.d-stat {
+  @apply flex flex-col;
+}
+
+.d-label {
+  @apply text-[10px] text-gray-500 uppercase font-bold;
+}
+
+.d-value {
+  @apply text-sm font-extrabold text-gray-700;
+}
+
+.w-stat {
+  @apply inline-flex flex-row items-center gap-1;
+}
+
+.w-label {
+  @apply text-[8px] text-gray-500 uppercase font-bold mb-1;
+}
+
+.w-value {
+  @apply text-xs font-extrabold text-gray-700 px-1;
+}
+
+/* Event Card */
+.extra-small {
+  @apply text-xs opacity-70;
+}
+
+.event-card .card-body {
+  @apply pb-1;
+}
+
+.badge-primary-soft {
+  @apply bg-blue-100 border border-blue-200;
+}
+
+.transition-hover {
+  @apply transition duration-200;
+}
+
+.transition-hover:hover {
+  @apply -translate-y-0.5 shadow-lg;
+}
+
+.event-list {
+  @apply border-l-2 border-gray-200;
+}
+
+.form-control:focus {
+  @apply shadow-[0_0_0_0.2rem_rgba(26,115,232,0.25)] bg-white;
+}
+
+/* Archive Timeline */
+.timeline-nav {
+  @apply sticky top-5 max-h-[calc(100vh-40px)] overflow-y-auto pr-2;
+}
+
+.timeline-item {
+  @apply block py-2.5 px-3 text-gray-600 border-l-2 border-gray-100 text-sm font-semibold transition-all no-underline mb-1;
+}
+
+.timeline-item:hover {
+  @apply text-blue-600 border-l-blue-500 bg-gray-50;
+}
+
+.month-header {
+  @apply sticky top-0 z-40 bg-gray-50 py-4 px-6 border-b border-gray-100 flex justify-between items-center rounded-t-2xl;
+}
+
+.month-container {
+  @apply mb-10 border border-gray-200 rounded-2xl bg-white shadow-sm overflow-visible;
+}
+
+.day-row {
+  @apply flex p-6 border-b border-gray-100;
+}
+
+.day-row:last-child {
+  @apply border-b-0;
+}
+
+.day-sidebar {
+  @apply flex-none w-[90px] text-left;
+}
+
+.day-number {
+  @apply text-2xl font-extrabold leading-none text-gray-800;
+}
+
+.day-name {
+  @apply text-xs uppercase text-gray-500 tracking-wide;
+}
+
+.events-content {
+  @apply flex-1 pl-5 border-l border-gray-100;
+}
+
+.cat-pill {
+  @apply text-[11px] font-bold px-2.5 py-1 rounded-md uppercase;
+}

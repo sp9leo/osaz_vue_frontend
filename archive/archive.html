@@ -1,0 +1,135 @@
+{% block page_content %}
+
+
+<div class="container py-5">
+  <div class="card border-0 shadow-sm mb-5 p-3">
+    <form method="GET" class="row no-gutters align-items-center">
+      <div class="col-md-7 px-2">
+        <input type="text" name="q" class="form-control" placeholder="Išči po dogodkih..." value="{{ frappe.form_dict.q or '' }}">
+      </div>
+      <div class="col-md-3 px-2">
+        <select name="category" class="form-control" onchange="this.form.submit()">
+          <option value="">Vse kategorije</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}" {{ 'selected' if frappe.form_dict.category == cat }}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 px-2 d-flex">
+        <button type="submit" class="btn btn-primary flex-fill mr-1" title="Filtriraj">
+          <i class="fa fa-search"></i>
+        </button>
+        <button type="button" class="btn btn-secondary flex-fill mr-1" onclick="window.location.href='{{ frappe.request.path }}'" title="Počisti filtre">
+          <i class="fas fa-sync"></i> 
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="row">
+    <div class="col-md-2 d-none d-md-block">
+      <div class="timeline-nav">
+        <div class="small text-uppercase text-muted mb-3 font-weight-bold tracking-wider">Meseci</div>
+        {% set unique_months = [] %}
+        {% for group in grouped_events %}
+          {% if group.month_key not in unique_months %}
+            {% set m_name = {
+              "01":"Januar","02":"Februar","03":"Marec","04":"April","05":"Maj","06":"Junij",
+              "07":"Julij","08":"Avgust","09":"September","10":"Oktober","11":"November","12":"December"
+            }[group.month_num] %}
+            <a href="#month-{{ group.month_key }}" class="timeline-item">
+              {{ m_name }} <span class="small opacity-50">{{ group.year }}</span>
+            </a>
+            {% set _ = unique_months.append(group.month_key) %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-md-10">
+      {% if grouped_events %}
+        {% set ns = namespace(active_month="") %}
+        {% for group in grouped_events %}
+          {% set m_label = {
+            "01":"Januar","02":"Februar","03":"Marec","04":"April","05":"Maj","06":"Junij",
+            "07":"Julij","08":"Avgust","09":"September","10":"Oktober","11":"November","12":"December"
+          }[group.month_num] %}
+
+          {% if group.month_key != ns.active_month %}
+            {% if not loop.first %}
+                </div> </div>   {% endif %}
+
+            <div class="month-container" id="month-{{ group.month_key }}">
+              <div class="month-header">
+                <h4 class="mb-0 font-weight-bold">{{ m_label }} {{ group.year }}</h4>
+                <span class="badge badge-pill badge-light border text-muted">
+                  {{ month_counts[group.month_key] }} dogodkov
+                </span>
+              </div>
+              <div class="month-body">
+            {% set ns.active_month = group.month_key %}
+          {% endif %}
+
+          <div class="day-row">
+            <div class="day-sidebar">
+              <div class="day-number">{{ frappe.utils.format_date(group.date_group, "d") }}</div>
+              <div class="day-name">{{ frappe.utils.format_date(group.date_group, "EEE") }}</div>
+            </div>
+
+            <div class="events-content">
+              {% for item in group.events %}
+                <div class="event-entry py-2">
+                  <div class="row align-items-start">
+                    <div class="col-sm-3">
+                      <h6 class="font-weight-bold mb-1" style="color: #2c3e50;">
+                        <span style="color: {{ item.color or '#ccc' }};">●</span> {{ item.subject }}
+                      </h6>
+                      <div class="small font-weight-bold text-muted">
+                          
+                        <i class="far fa-clock"></i> {{ frappe.utils.format_datetime(item.starts_on, "HH:mm") }}<br>
+                        {% if item.is_multiday %}
+                        <i class="far fa-calendar mr-2 text-primary"></i>
+                                            {{ frappe.utils.format_datetime(item.starts_on, "dd. MM") }} -
+                                            {{ frappe.utils.format_datetime(item.ends_on, "dd. MM") if item.ends_on else
+                                            "?" }}
+                                            {% endif %}
+                                            
+                      </div>
+                    </div>
+                    <div class="col-sm-6">
+                      {% set desc = item.description or "" %}
+                      {% set desc_id = "desc-" ~ item.name %}
+                      {% if desc|length > 120 %}
+                        <a data-toggle="collapse" href="#{{ desc_id }}" class="text-primary small font-weight-bold">Prikaži opis…</a>
+                        <div id="{{ desc_id }}" class="collapse mt-2 small text-muted border-left pl-2">{{ desc }}</div>
+                      {% else %}
+                        <div class="small text-muted">{{ desc }}</div>
+                      {% endif %}
+                    </div>
+                    <div class="col-sm-3 text-md-right mt-2 mt-md-0">
+                      {% if item.event_category %}
+                        <span class="cat-pill" style="background: {{ item.color }}15; color: {{ item.color }}; border: 1px solid {{ item.color }}30;">
+                          {{ item.event_category }}
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          {% if loop.last %}
+                </div> </div>   {% endif %}
+        {% endfor %}
+      {% else %}
+        <div class="text-center py-5 bg-white rounded shadow-sm border">
+          <p class="text-muted mb-0">Ni najdenih dogodkov za izbrane filtre.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,117 @@
+<style>
+  .weather-dashboard {
+    background: #f8f9fa;
+    border-radius: 20px;
+    padding: 25px;
+    max-width: 800px;
+    margin: 20px auto;
+  }
+  .weather-card {
+    background: #fff;
+    border: none;
+    border-radius: 15px;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  .weather-card:hover {
+    transform: translateY(-5px);
+  }
+  .weather-val {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #2c3e50;
+    display: block;
+  }
+  .weather-label {
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .weather-icon {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #007bff;
+  }
+</style>
+
+<div class="weather-dashboard shadow-sm">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 font-weight-bold"><i class="fas fa-satellite-dish mr-2"></i>Vremenska Postaja</h4>
+    <small class="text-muted" id="last-update">Osveževanje...</small>
+  </div>
+
+  <div class="row text-center">
+    <div class="col-6 col-md-3 mb-3">
+      <div class="card weather-card p-3">
+        <i class="fas fa-thermometer-half weather-icon"></i>
+        <span class="weather-label">Temp</span>
+        <span id="temp" class="weather-val">--</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3 mb-3">
+      <div class="card weather-card p-3">
+        <i class="fas fa-tint weather-icon"></i>
+        <span class="weather-label">Vlaga</span>
+        <span id="hum" class="weather-val">--</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3 mb-3">
+      <div class="card weather-card p-3">
+        <i class="fas fa-wind weather-icon"></i>
+        <span class="weather-label">Veter</span>
+        <span id="wind" class="weather-val">--</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3 mb-3">
+      <div class="card weather-card p-3">
+        <i class="fas fa-cloud-rain weather-icon"></i>
+        <span class="weather-label">Dež (h)</span>
+        <span id="rain" class="weather-val">--</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadWeather() {
+  const url = "https://api.ecowitt.net/api/v3/device/real_time?api_key=9693dc26-aea5-43f8-b18d-d68af63f70a5&mac=F0:08:D1:07:38:ED&call_back=all&application_key=A5AA1BADD3484FF58017905F740217CF";
+  
+  try {
+    const response = await fetch(url);
+    const json = await response.json();
+    
+    if (json.code === 0) {
+      const d = json.data;
+
+      // Conversions
+      const tempC = ((d.outdoor.temperature.value - 32) * 5/9).toFixed(1);
+      const windKmh = (d.wind.wind_speed.value * 1.60934).toFixed(1);
+      const rainMm = (d.rainfall.daily.value * 25.4).toFixed(1);
+      
+      // Update DOM
+      document.getElementById("temp").innerText = tempC + "°C";
+      document.getElementById("hum").innerText = d.outdoor.humidity.value + "%";
+      document.getElementById("wind").innerText = windKmh + " km/h";
+      document.getElementById("rain").innerText = rainMm + " mm";
+      
+      // Update Timestamp
+      const now = new Date();
+      document.getElementById("last-update").innerText = "Zadnja posodobitev: " + now.toLocaleTimeString();
+    }
+  } catch (error) {
+    console.error("Napaka pri branju podatkov:", error);
+    document.getElementById("last-update").innerText = "Napaka pri povezavi";
+  }
+}
+
+loadWeather();
+setInterval(loadWeather, 60000); // 1 minute refresh
+</script>
+
+
+

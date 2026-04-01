@@ -1,0 +1,53 @@
+  .date-mini-card {
+    background: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 5px;
+    display: inline-flex;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .d-stat { display: flex; flex-direction: column; }
+  .d-label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: 700; }
+  .d-value { font-size: 0,8rem; font-weight: 800; color: #2c3e50; }
+
+.extra-small {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+.page-content { padding-top: 0 !important; } .container { padding-top: 0 !important; } .page-header { margin-top: 0 !important; padding-top: 0 !important; }
+
+
+
+/* Prilagoditev paddinga kartice, da besedilo ne prekriva vsebine */
+.event-card .card-body {
+    padding-bottom: 5px !important; 
+}
+
+   .badge-primary-soft { background-color: #e7f1ff; border: 1px solid #cfe2ff; }
+    .transition-hover { transition: 0.2s; }
+    .transition-hover:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; 
+    }
+    .event-list { border-left: 2px solid #dee2e6 !important; }
+    .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25) !important;
+        background-color: #fff !important;
+    }
+    
+      .weather-mini-card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 5px;
+    display: inline-flex;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .w-stat { display: inline; flex-direction: row; }
+  .w-label { font-size: 8px; color: #888; text-transform: uppercase; font-weight: 700; }
+  .w-value { font-size: 0.8rem; font-weight: 800; color: #2c3e50; padding:4px; }
+  
+  
+  

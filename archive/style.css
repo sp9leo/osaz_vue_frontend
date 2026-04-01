@@ -1,0 +1,71 @@
+
+  /* 1. STICKY TIMELINE (LEFT) */
+  .timeline-nav {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 20px; /* Adjust this if you have a top navbar */
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding-right: 10px;
+  }
+
+  .timeline-item {
+    display: block;
+    padding: 10px 15px;
+    color: #666;
+    border-left: 3px solid #eee;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-decoration: none !important;
+    margin-bottom: 5px;
+  }
+
+  .timeline-item:hover {
+    color: #007bff;
+    border-left-color: #007bff;
+    background: #f8f9fa;
+  }
+
+  /* 2. STICKY MONTH HEADER */
+  .month-header {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    background: #fcfcfc;
+    padding: 18px 25px;
+    border-bottom: 2px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+  }
+
+  .month-container {
+    margin-bottom: 40px;
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    overflow: visible !important;
+    scroll-margin-top: 20px; /* Space above when jumping to month */
+  }
+
+  /* 3. DAY & EVENT ROWS */
+  .day-row {
+    display: flex;
+    padding: 25px;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .day-row:last-child { border-bottom: none; }
+  .day-sidebar { flex: 0 0 90px; text-align: left; }
+  .day-number { font-size: 1.8rem; font-weight: 800; line-height: 1; color: #1a1a1a; }
+  .day-name { font-size: 0.8rem; text-transform: uppercase; color: #888; letter-spacing: 1px; }
+  .events-content { flex: 1; padding-left: 20px; border-left: 1px solid #f0f0f0; }
+
+  .cat-pill {
+    font-size: 0.7rem; font-weight: 700; padding: 4px 10px;
+    border-radius: 6px; text-transform: uppercase;
+  }

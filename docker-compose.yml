@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  vue-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_FRAPPE_URL=http://localhost:8000
+    depends_on:
+      - frappe
+    networks:
+      - osaz-network
+    restart: unless-stopped
+
+  # Frappe backend (optional - uncomment if you want to run Frappe in this compose)
+  # frappe:
+  #   image: frappe/bench:latest
+  #   command: bench start
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - FRAPPE_SITE=localhost
+  #   volumes:
+  #     - frappe-bench:/home/frappe/frappe-bench
+  #   networks:
+  #     - osaz-network
+  #   restart: unless-stopped
+
+networks:
+  osaz-network:
+    driver: bridge
+
+volumes:
+  # frappe-bench:  # Uncomment if using Frappe container
+  #   driver: local
