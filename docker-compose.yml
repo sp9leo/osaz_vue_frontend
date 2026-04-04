@@ -7,32 +7,16 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:80"
-    environment:
-      - VITE_FRAPPE_URL=http://localhost:8000
-    depends_on:
-      - frappe
     networks:
-      - osaz-network
+      - traefik-public
     restart: unless-stopped
-
-  # Frappe backend (optional - uncomment if you want to run Frappe in this compose)
-  # frappe:
-  #   image: frappe/bench:latest
-  #   command: bench start
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     - FRAPPE_SITE=localhost
-  #   volumes:
-  #     - frappe-bench:/home/frappe/frappe-bench
-  #   networks:
-  #     - osaz-network
-  #   restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vue-app.rule=Host(`osaz.si`)"
+      - "traefik.http.routers.vue-app.entrypoints=websecure"
+      - "traefik.http.routers.vue-app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.vue-app.loadbalancer.server.port=80"
 
 networks:
-  osaz-network:
-    driver: bridge
-
-volumes:
-  # frappe-bench:  # Uncomment if using Frappe container
-  #   driver: local
+  traefik-public:
+    external: true

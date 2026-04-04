@@ -7,7 +7,6 @@ dist
 !.env.example
 Dockerfile
 docker-compose.yml
-nginx.conf
 *.md
 *.log
 .DS_Store
