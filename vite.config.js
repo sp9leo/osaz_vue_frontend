@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://isa.osaz.si',
+        target: 'https://muri.osaz.si',
         changeOrigin: true,
         secure: true,
       }
