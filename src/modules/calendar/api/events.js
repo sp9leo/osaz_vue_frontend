@@ -13,7 +13,7 @@ export const getEvents = async (filters = []) => {
     'status',
     'modified',
     'location',
-    'custom_predvideno',
+    'predvideno',
     'published',
     'owner',
   ]

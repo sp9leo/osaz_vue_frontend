@@ -170,7 +170,7 @@ const toggleDescription = () => {
                 :style="{ backgroundColor: event.color + '15', color: event.color, border: '1px solid ' + event.color + '30' }">
             {{ event.event_category }}
           </span>
-          <span v-if="event.custom_predvideno" class="inline-block py-1 px-3 rounded-full text-xs font-bold text-red-600 mt-1">
+          <span v-if="event.predvideno" class="inline-block py-1 px-3 rounded-full text-xs font-bold text-red-600 mt-1">
             <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Predvideno
           </span>
           <span v-if="isOwner && isPublished" class="inline-block py-1 px-3 rounded-full text-xs font-bold bg-green-100 text-green-600 mt-1 ml-1">
@@ -332,7 +332,7 @@ const toggleDescription = () => {
                 :style="{ backgroundColor: event.color + '15', color: event.color, border: '1px solid ' + event.color + '30' }">
             {{ event.event_category }}
           </span>
-          <span v-if="event.custom_predvideno" class="inline-block py-1 px-3 rounded-full text-xs font-bold text-red-600 mt-1">
+          <span v-if="event.predvideno" class="inline-block py-1 px-3 rounded-full text-xs font-bold text-red-600 mt-1">
             <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Predvideno
           </span>
           <span v-if="isOwner && isPublished" class="inline-block py-1 px-3 rounded-full text-xs font-bold bg-green-100 text-green-600 mt-1 ml-1">

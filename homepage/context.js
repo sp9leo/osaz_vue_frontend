@@ -12,7 +12,7 @@ if selected_category:
 # 3. Pridobivanje dogodkov
 events_list = frappe.db.get_all(
     "Dogodek",
-    fields=["name", "subject", "starts_on", "ends_on", "description", "event_category", "color", "status","modified", "location", "custom_predvideno"],
+    fields=["name", "subject", "starts_on", "ends_on", "description", "event_category", "color", "status","modified", "location", "predvideno"],
     order_by="starts_on asc",
     filters={
         "ends_on": [">=", frappe.utils.today()],

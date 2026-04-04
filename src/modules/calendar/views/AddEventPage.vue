@@ -20,7 +20,7 @@ const form = ref({
   description: '',
   event_category: '',
   location: '',
-  custom_predvideno: 0,
+  predvideno: 0,
   status: 'Open',
   published: 1,
 })
@@ -50,7 +50,7 @@ const handleSubmit = async () => {
       description: form.value.description,
       event_category: form.value.event_category,
       location: form.value.location,
-      custom_predvideno: form.value.custom_predvideno ? 1 : 0,
+      predvideno: form.value.predvideno ? 1 : 0,
       status: form.value.status,
       published: form.value.published ? 1 : 0,
     }
@@ -196,11 +196,11 @@ onMounted(async () => {
 
               <div class="flex items-center gap-2">
                 <input
-                  v-model="form.custom_predvideno"
+                  v-model="form.predvideno"
                   type="checkbox"
                   id="predvideno"
                   class="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
-                  :checked="form.custom_predvideno"
+                  :checked="form.predvideno"
                 />
                 <label for="predvideno" class="text-sm text-gray-700">
                   Predvideno

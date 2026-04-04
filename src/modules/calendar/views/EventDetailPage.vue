@@ -134,7 +134,7 @@ onMounted(fetchEvent)
                 :style="{ backgroundColor: (event.color || '#ccc') + '20', color: event.color || '#666' }">
             {{ event.event_category }}
           </span>
-          <span v-if="event.custom_predvideno" class="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-600">
+          <span v-if="event.predvideno" class="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-600">
             <i class="fa fa-exclamation-triangle mr-1"></i> Predvideno
           </span>
           <span v-if="isNow" class="inline-block px-3 py-1 rounded-full text-sm font-bold bg-red-100 text-red-600">
