@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const isDev = import.meta.env.DEV
-const API_BASE_URL = isDev ? '' : (import.meta.env.VITE_FRAPPE_URL || '')
+const API_BASE_URL = isDev ? '' : import.meta.env.VITE_FRAPPE_URL || ''
 const API_KEY = import.meta.env.VITE_FRAPPE_API_KEY || ''
 const API_SECRET = import.meta.env.VITE_FRAPPE_API_SECRET || ''
 

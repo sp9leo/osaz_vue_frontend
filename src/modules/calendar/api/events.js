@@ -19,7 +19,11 @@ export const getEvents = async (filters = []) => {
   ]
 
   const result = await getDoctypeList('Dogodek', filters, fields, 'starts_on asc', 200)
-  return result.data || result
+  let data = result.data || result
+  if (!Array.isArray(data)) {
+    data = []
+  }
+  return data.sort((a, b) => new Date(a.starts_on) - new Date(b.starts_on))
 }
 
 export const getUpcomingEvents = async () => {
@@ -55,7 +59,10 @@ export const getEventsInRange = async (startDate, endDate, limit = 100) => {
 
 export const getEventCategories = async () => {
   const result = await getResource('Event Type', { fields: ['name'] })
-  const data = result.data || result
+  let data = result.data || result
+  if (!Array.isArray(data)) {
+    data = []
+  }
   return data.map((item) => item.name)
 }
 

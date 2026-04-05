@@ -9,11 +9,15 @@ export const getObvestila = async (filters = []) => {
     'content',
     'public',
     'important',
-    'custom_velja_do',
+    // 'custom_velja_do',
   ]
 
   const result = await getDoctypeList('Obvestila', filters, fields, null, 100)
-  return result.data || result
+  let data = result.data || result
+  if (!Array.isArray(data)) {
+    data = []
+  }
+  return data
 }
 
 export const getImportantObvestila = async () => {
