@@ -72,11 +72,11 @@ export const getEventByName = async (name) => {
 }
 
 export const createEvent = async (eventData) => {
-  const response = await frappeApi.post('/api/resource/Dogodek', eventData)
+  const response = await frappeApi.post('/api/resource/Dogodek', { data: eventData })
   return response.data
 }
 
 export const updateEvent = async (name, eventData) => {
-  const response = await frappeApi.put(`/api/resource/Dogodek/${name}`, eventData)
+  const response = await frappeApi.put(`/api/resource/Dogodek/${name}`, { data: eventData })
   return response.data
 }
