@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { checkAuth, getAuthUsername } from '@/api/frappe'
 import frappeApi from '@/api/frappe'
+
+const route = useRoute()
 
 const router = useRouter()
 

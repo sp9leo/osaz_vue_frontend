@@ -41,6 +41,13 @@ frappeApi.interceptors.response.use(
   }
 )
 
+frappeApi.interceptors.request.use((config) => {
+  if (window.csrf_token) {
+    config.headers['X-Frappe-CSRF-Token'] = window.csrf_token
+  }
+  return config
+})
+
 export const getResource = async (doctype, params = {}) => {
   try {
     const response = await frappeApiRead.get(`/api/resource/${doctype}`, { params })

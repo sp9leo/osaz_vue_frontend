@@ -32,21 +32,17 @@ const handleLogin = async () => {
     
     try {
       const baseUrl = import.meta.env.DEV ? '' : import.meta.env.VITE_FRAPPE_URL
-      const bootRes = await fetch(baseUrl + '/api/method/frappe.boot.get_boot_info', {
+      const r = await fetch(baseUrl + '/api/method/frappe.boot.get_boot_info', {
         credentials: 'include'
       })
-      const bootData = await bootRes.json()
-      if (bootData.csrf_token) {
-        window.csrf_token = bootData.csrf_token
-        console.log('CSRF token fetched:', bootData.csrf_token)
-      }
-    } catch (e) {
-      console.warn('Could not fetch CSRF token:', e)
-    }
+      const d = await r.json()
+      if (d.csrf_token) window.csrf_token = d.csrf_token
+    } catch (e) {}
     
     const redirect = route.query.redirect || '/'
     router.push(redirect)
   } catch (e) {
+    console.error('Login error:', e)
     error.value = 'Napačno uporabniško ime ali geslo'
   } finally {
     loading.value = false
