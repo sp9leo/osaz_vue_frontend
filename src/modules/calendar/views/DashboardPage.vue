@@ -61,12 +61,6 @@ const isObvestiloValid = (item) => {
   
   if (now < zacetek) return false
   
-  let veljaDo = parseDate(item.custom_velja_do)
-  if (veljaDo && !isNaN(veljaDo.getTime())) {
-    veljaDo.setHours(23, 59, 59, 999)
-    return now <= veljaDo
-  }
-  
   return true
 }
 
