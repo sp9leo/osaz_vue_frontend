@@ -1,13 +1,17 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { RouterView, RouterLink, useRoute, useRouter } from 'vue-router'
-import { checkAuth, logout } from '@/api/frappe'
+import { checkAuth, logout, initCsrfToken } from '@/api/frappe'
 
 const route = useRoute()
 const router = useRouter()
 
 const isLoggedIn = ref(false)
 const currentUser = ref('')
+
+onMounted(() => {
+  initCsrfToken()
+})
 
 const checkLoginStatus = async () => {
   const user = await checkAuth()

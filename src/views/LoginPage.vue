@@ -29,6 +29,21 @@ const handleLogin = async () => {
     error.value = null
     await login(username.value, password.value)
     await setAuthUser(username.value)
+    
+    try {
+      const baseUrl = import.meta.env.DEV ? '' : import.meta.env.VITE_FRAPPE_URL
+      const bootRes = await fetch(baseUrl + '/api/method/frappe.boot.get_boot_info', {
+        credentials: 'include'
+      })
+      const bootData = await bootRes.json()
+      if (bootData.csrf_token) {
+        window.csrf_token = bootData.csrf_token
+        console.log('CSRF token fetched:', bootData.csrf_token)
+      }
+    } catch (e) {
+      console.warn('Could not fetch CSRF token:', e)
+    }
+    
     const redirect = route.query.redirect || '/'
     router.push(redirect)
   } catch (e) {

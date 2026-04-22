@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { checkAuth, getAuthUsername } from '@/api/frappe'
-import { createObvestilo } from '@/modules/calendar/api/obvestila'
+import frappeApi from '@/api/frappe'
 
 const router = useRouter()
 
@@ -40,7 +40,7 @@ const handleSubmit = async () => {
     
     console.log('Creating obvestilo with data:', obvestiloData)
     
-    const result = await createObvestilo(obvestiloData)
+    const result = await frappeApi.post('/api/resource/Obvestila', { data: obvestiloData })
     router.push('/dashboard')
   } catch (e) {
     const message = e.response?.data?.message || e.message || 'Neznana napaka'
