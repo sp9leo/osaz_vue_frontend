@@ -31,7 +31,8 @@ const isOwner = computed(() => {
   return props.event.owner === currentUser.value || 
          props.event.owner === currentUserFull.value ||
          props.event.owner === localStorage.getItem('frappe_user') ||
-         props.event.owner === localStorage.getItem('frappe_user_fullname')
+         props.event.owner === localStorage.getItem('frappe_user_fullname') ||
+         (currentUser.value && props.event.owner?.includes(currentUser.value))
 })
 
 const isPublished = computed(() => {

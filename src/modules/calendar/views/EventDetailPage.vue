@@ -15,7 +15,8 @@ const isOwner = computed(() => {
   if (!currentUser.value || !event.value?.owner) return false
   return event.value.owner === currentUser.value ||
          event.value.owner === localStorage.getItem('frappe_user') ||
-         event.value.owner === localStorage.getItem('frappe_user_fullname')
+         event.value.owner === localStorage.getItem('frappe_user_fullname') ||
+         (currentUser.value && event.value.owner?.includes(currentUser.value))
 })
 
 const getLocalISOString = (date) => {
