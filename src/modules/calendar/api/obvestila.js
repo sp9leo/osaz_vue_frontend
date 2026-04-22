@@ -9,7 +9,7 @@ export const getObvestila = async (filters = []) => {
     'content',
     'public',
     'important',
-    // 'custom_velja_do',
+    'custom_velja_do',
   ]
 
   const result = await getDoctypeList('Obvestila', filters, fields, null, 100)

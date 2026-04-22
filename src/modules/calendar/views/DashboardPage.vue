@@ -73,7 +73,7 @@ const isObvestiloValid = (item) => {
 const validAnnouncements = computed(() => {
   return announcements.value.filter(a => {
     const publicValue = a.public
-    const isPublic = publicValue === 1 || publicValue === true || publicValue === '1' || publicValue === undefined
+    const isPublic = publicValue === 1 || publicValue === true || publicValue === '1'
     if (!isPublic) return false
     if (isLoggedIn.value) return true
     return isObvestiloValid(a)
