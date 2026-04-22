@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { checkAuth, getAuthUsername } from '@/api/frappe'
-import frappeApi from '@/api/frappe'
+import { createObvestilo } from '@/modules/calendar/api/obvestila'
 
 const router = useRouter()
 
@@ -14,7 +14,7 @@ const form = ref({
   title: '',
   content: '',
   zacetek: '',
-  custom_velja_do: '',
+  velja_do: '',
   important: false,
   public: true,
 })
@@ -33,14 +33,14 @@ const handleSubmit = async () => {
       title: form.value.title,
       content: form.value.content,
       zacetek: form.value.zacetek ? form.value.zacetek + ' 00:00:00' : null,
-      custom_velja_do: form.value.custom_velja_do ? form.value.custom_velja_do + ' 00:00:00' : null,
+      velja_do: form.value.velja_do ? form.value.velja_do + ' 00:00:00' : null,
       important: form.value.important ? 1 : 0,
       'public': form.value.public ? 1 : 0,
     }
     
     console.log('Creating obvestilo with data:', obvestiloData)
     
-    const result = await frappeApi.post('/api/resource/Obvestila', obvestiloData)
+    const result = await createObvestilo(obvestiloData)
     router.push('/dashboard')
   } catch (e) {
     const message = e.response?.data?.message || e.message || 'Neznana napaka'
@@ -105,7 +105,7 @@ onMounted(async () => {
                   Velja do
                 </label>
                 <input
-                  v-model="form.custom_velja_do"
+                  v-model="form.velja_do"
                   type="date"
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />

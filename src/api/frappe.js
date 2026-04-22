@@ -41,6 +41,17 @@ frappeApi.interceptors.response.use(
   }
 )
 
+const addCsrfToken = (config) => {
+  const csrfToken = document.cookie.match(/sid=([^;]+)/)?.[1]
+  if (csrfToken) {
+    config.headers['X-Frappe-CSRF-Token'] = csrfToken
+  }
+  return config
+}
+
+frappeApi.interceptors.request.use(addCsrfToken)
+frappeApiRead.interceptors.request.use(addCsrfToken)
+
 export const getResource = async (doctype, params = {}) => {
   try {
     const response = await frappeApiRead.get(`/api/resource/${doctype}`, { params })

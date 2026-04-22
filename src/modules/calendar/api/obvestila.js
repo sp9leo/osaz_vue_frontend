@@ -38,12 +38,12 @@ export const getObvestiloByName = async (name) => {
 }
 
 export const createObvestilo = async (obvestiloData) => {
-  const response = await frappeApi.post('/api/resource/Obvestila', obvestiloData)
+  const response = await frappeApi.post('/api/resource/Obvestila', { data: obvestiloData })
   return response.data
 }
 
 export const updateObvestilo = async (name, obvestiloData) => {
-  const response = await frappeApi.put(`/api/resource/Obvestila/${name}`, obvestiloData)
+  const response = await frappeApi.put(`/api/resource/Obvestila/${name}`, { data: obvestiloData })
   return response.data
 }
 

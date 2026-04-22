@@ -22,7 +22,7 @@ const form = ref({
   title: '',
   content: '',
   zacetek: '',
-  custom_velja_do: '',
+  velja_do: '',
   important: false,
   public: true,
 })
@@ -34,7 +34,7 @@ watch(() => props.obvestilo, (newVal) => {
       title: newVal.title || '',
       content: newVal.content || '',
       zacetek: newVal.zacetek ? String(newVal.zacetek).split(' ')[0] : '',
-      custom_velja_do: newVal.custom_velja_do ? String(newVal.custom_velja_do).split(' ')[0] : '',
+      velja_do: newVal.velja_do ? String(newVal.velja_do).split(' ')[0] : '',
       important: newVal.important === 1 || newVal.important === true,
       public: newVal.public !== 0 && newVal.public !== false,
     }
@@ -55,7 +55,7 @@ const handleSubmit = async () => {
       title: form.value.title,
       content: form.value.content,
       zacetek: form.value.zacetek ? form.value.zacetek + ' 00:00:00' : null,
-      custom_velja_do: form.value.custom_velja_do ? form.value.custom_velja_do + ' 00:00:00' : null,
+      velja_do: form.value.velja_do ? form.value.velja_do + ' 00:00:00' : null,
       important: form.value.important ? 1 : 0,
       'public': form.value.public ? 1 : 0,
     }
@@ -123,7 +123,7 @@ const handleClose = () => {
                   Velja do
                 </label>
                 <input
-                  v-model="form.custom_velja_do"
+                  v-model="form.velja_do"
                   type="date"
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 />

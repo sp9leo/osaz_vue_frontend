@@ -16,7 +16,7 @@ const form = ref({
   title: '',
   content: '',
   zacetek: '',
-  custom_velja_do: '',
+  velja_do: '',
   important: false,
   public: true,
 })
@@ -31,7 +31,7 @@ const fetchObvestilo = async () => {
       title: obvestilo.title || '',
       content: obvestilo.content || '',
       zacetek: obvestilo.zacetek || '',
-      custom_velja_do: obvestilo.custom_velja_do || '',
+      velja_do: obvestilo.velja_do || '',
       important: obvestilo.important ? true : false,
       public: obvestilo.public !== 0,
     }
@@ -56,7 +56,7 @@ const handleSubmit = async () => {
       title: form.value.title,
       content: form.value.content,
       zacetek: form.value.zacetek || null,
-      custom_velja_do: form.value.custom_velja_do || null,
+      velja_do: form.value.velja_do || null,
       important: form.value.important ? 1 : 0,
       public: form.value.public ? 1 : 0,
     }
@@ -130,7 +130,7 @@ onMounted(async () => {
                   Velja do
                 </label>
                 <input
-                  v-model="form.custom_velja_do"
+                  v-model="form.velja_do"
                   type="date"
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
