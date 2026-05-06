@@ -9,7 +9,7 @@ export const getObvestila = async (filters = []) => {
     'content',
     'public',
     'important',
-    // 'velja_do',
+    'velja_do',
   ]
 
   const result = await getDoctypeList('Obvestila', filters, fields, null, 100)
@@ -28,7 +28,6 @@ export const getImportantObvestila = async () => {
 
 export const getAllObvestila = async () => {
   const data = await getObvestila()
-  console.log('getAllObvestila raw data:', data)
   return data
 }
 

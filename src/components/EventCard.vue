@@ -41,9 +41,9 @@ const isPublished = computed(() => {
 
 const isNow = computed(() => {
   if (!props.event.starts_on) return false
-  const now = new Date().toISOString()
-  const start = props.event.starts_on
-  const end = props.event.ends_on || start
+  const now = new Date()
+  const start = new Date(props.event.starts_on.replace(' ', 'T'))
+  const end = props.event.ends_on ? new Date(props.event.ends_on.replace(' ', 'T')) : start
   return start <= now && now <= end
 })
 

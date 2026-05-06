@@ -61,6 +61,15 @@ const isObvestiloValid = (item) => {
   
   if (now < zacetek) return false
   
+  // Check if velja_do (expiry date) has passed
+  if (item.velja_do) {
+    const veljaDo = parseDate(item.velja_do)
+    if (veljaDo && !isNaN(veljaDo.getTime())) {
+      veljaDo.setHours(23, 59, 59, 999)
+      if (now > veljaDo) return false
+    }
+  }
+  
   return true
 }
 
@@ -69,7 +78,6 @@ const validAnnouncements = computed(() => {
     const publicValue = a.public
     const isPublic = publicValue === 1 || publicValue === true || publicValue === '1'
     if (!isPublic) return false
-    if (isLoggedIn.value) return true
     return isObvestiloValid(a)
   })
 })
@@ -154,8 +162,8 @@ const getWeekRange = () => {
 
 const groupedWeekEvents = computed(() => {
   const grouped = {}
-  const now = new Date().toISOString()
-  const today = now.split('T')[0]
+  const now = new Date()
+  const today = now.toISOString().split('T')[0]
   
   for (const event of weekEvents.value) {
     if (!event.starts_on) continue
@@ -165,7 +173,9 @@ const groupedWeekEvents = computed(() => {
     const startDateOnly = startStr.split(' ')[0].split('T')[0]
     const endDateOnly = endStr.split(' ')[0].split('T')[0]
     
-    event.is_now = event.starts_on <= now && now <= (event.ends_on || event.starts_on)
+    const start = new Date(startStr.replace(' ', 'T'))
+    const end = event.ends_on ? new Date(endStr.replace(' ', 'T')) : start
+    event.is_now = start <= now && now <= end
     event.is_today = startDateOnly === today
     event.is_multiday = startDateOnly !== endDateOnly
     
@@ -186,8 +196,8 @@ const groupedWeekEvents = computed(() => {
 })
 
 const todayGroupedEvents = computed(() => {
-  const now = new Date().toISOString()
-  const today = now.split('T')[0]
+  const now = new Date()
+  const today = now.toISOString().split('T')[0]
   
   for (const event of todayEvents.value) {
     if (!event.starts_on) continue
@@ -197,7 +207,9 @@ const todayGroupedEvents = computed(() => {
     const startDateOnly = startStr.split(' ')[0].split('T')[0]
     const endDateOnly = endStr.split(' ')[0].split('T')[0]
     
-    event.is_now = event.starts_on <= now && now <= (event.ends_on || event.starts_on)
+    const start = new Date(startStr.replace(' ', 'T'))
+    const end = event.ends_on ? new Date(endStr.replace(' ', 'T')) : start
+    event.is_now = start <= now && now <= end
     event.is_today = startDateOnly === today
     event.is_multiday = startDateOnly !== endDateOnly
   }
