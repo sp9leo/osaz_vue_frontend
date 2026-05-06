@@ -5,12 +5,12 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: () => import('@/modules/calendar/views/HomePage.vue'),
+    component: () => import('@/modules/calendar/views/DashboardPage.vue'),
   },
   {
-    path: '/dashboard',
-    name: 'dashboard',
-    component: () => import('@/modules/calendar/views/DashboardPage.vue'),
+    path: '/koledar',
+    name: 'koledar',
+    component: () => import('@/modules/calendar/views/HomePage.vue'),
   },
   {
     path: '/archive',

@@ -32,26 +32,28 @@ watch(() => route.fullPath, checkLoginStatus, { immediate: true })
 
 <template>
   <div class="min-h-screen bg-gray-100">
-    <nav class="bg-white shadow-sm border-b border-gray-200">
+    <nav class="bg-white shadow-sm border-b border-gray-200 mb-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-14">
           <div class="flex items-center">
             <span class="text-xl font-semibold text-gray-800">OSAZ</span>
             <div class="ml-8 flex space-x-1">
-              <RouterLink
+            <RouterLink
                 to="/"
-                class="px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                :class="route.name === 'home' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'"
-              >
-                Koledar
-              </RouterLink>
-              <RouterLink
-                to="/dashboard"
                 class="px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 :class="route.name === 'dashboard' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'"
               >
                 Nadzorna plošča
+                </RouterLink>
+              <RouterLink
+                to="/koledar"
+                class="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                :class="route.name === 'koledar' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'"
+              >
+                Koledar
               </RouterLink>
+              
+              
               <RouterLink
                 to="/archive"
                 class="px-3 py-2 rounded-md text-sm font-medium transition-colors"
