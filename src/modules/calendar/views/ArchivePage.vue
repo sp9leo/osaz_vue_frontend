@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import SearchFilter from '@/components/SearchFilter.vue'
 import MonthNav from '@/components/MonthNav.vue'
 import EventCard from '@/components/EventCard.vue'
-import { getAllEvents, getEvents, getEventCategories } from '@/modules/calendar/api/events'
+import { getAllEvents, getEvents } from '@/modules/calendar/api/events'
 import { checkAuth, getAuthUsername } from '@/api/frappe'
 
 const route = useRoute()
@@ -128,19 +128,24 @@ const fetchEvents = async () => {
         }
       }
     }
+    
+    // Only show past events (already ended)
+    const now = new Date()
+    events.value = events.value.filter(e => {
+      if (!e.starts_on) return true
+      const end = e.ends_on ? new Date(e.ends_on.replace(' ', 'T')) : new Date(e.starts_on.replace(' ', 'T'))
+      return end < now
+    })
+    
+    // Extract unique categories from events
+    const cats = new Set()
+    events.value.forEach(e => { if (e.event_category) cats.add(e.event_category) })
+    categories.value = [...cats].sort()
   } catch (e) {
     error.value = e.message
     console.error('Error fetching events:', e)
   } finally {
     loading.value = false
-  }
-}
-
-const fetchCategories = async () => {
-  try {
-    categories.value = await getEventCategories()
-  } catch (e) {
-    console.error('Error fetching categories:', e)
   }
 }
 
@@ -151,10 +156,6 @@ const goToEvent = (name) => {
 watch(() => [route.query.q, route.query.category], () => {
   fetchEvents()
 }, { immediate: true })
-
-onMounted(() => {
-  fetchCategories()
-})
 </script>
 
 <template>
