@@ -249,7 +249,12 @@ const fetchEvents = async () => {
 const fetchObvestila = async () => {
   try {
     loadingObvestila.value = true
-    const data = await getAllObvestila()
+
+    const filters = isLoggedIn.value
+      ? []                // logged-in users see everything
+      : [['public', '=', 1]]  // guests see only public
+
+    const data = await getAllObvestila(filters)
     announcements.value = data || []
   } catch (e) {
     console.error('Error fetching obvestila:', e)
@@ -257,6 +262,7 @@ const fetchObvestila = async () => {
     loadingObvestila.value = false
   }
 }
+
 
 const goToCalendar = () => {
   router.push('/')
