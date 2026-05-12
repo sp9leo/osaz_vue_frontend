@@ -12,6 +12,7 @@ const router = useRouter()
 
 const todayEvents = ref([])
 const weekEvents = ref([])
+const nextWeekEvents = ref([])
 const announcements = ref([])
 const loading = ref(true)
 const loadingObvestila = ref(true)
@@ -149,23 +150,25 @@ const formatDayHeader = (dateStr) => {
   return `${dayName}, ${dayNum}. ${month}.`
 }
 
-const getWeekRange = () => {
+const getWeekRangeFor = (dateOffset = 0) => {
   const today = new Date()
-  const endDate = new Date(today)
-  endDate.setDate(endDate.getDate() + 6)
-  
-  const todayStr = today.toISOString().split('T')[0]
-  const endDateStr = endDate.toISOString().split('T')[0]
-  
-  return { start: todayStr, end: endDateStr }
+  const target = new Date(today)
+  target.setDate(target.getDate() + (7 * dateOffset))
+  const dayOfWeek = target.getDay()
+  const monday = new Date(target)
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+  monday.setDate(target.getDate() + diff)
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 6)
+  return { start: monday.toISOString().split('T')[0], end: sunday.toISOString().split('T')[0] }
 }
 
-const groupedWeekEvents = computed(() => {
+const groupEvents = (events) => {
   const grouped = {}
   const now = new Date()
   const today = now.toISOString().split('T')[0]
   
-  for (const event of weekEvents.value) {
+  for (const event of events) {
     if (!event.starts_on) continue
     const startStr = String(event.starts_on).trim()
     const endStr = event.ends_on ? String(event.ends_on).trim() : startStr
@@ -193,7 +196,10 @@ const groupedWeekEvents = computed(() => {
     })
   }
   return sorted
-})
+}
+
+const groupedWeekEvents = computed(() => groupEvents(weekEvents.value))
+const nextWeekGroupedEvents = computed(() => groupEvents(nextWeekEvents.value))
 
 const todayGroupedEvents = computed(() => {
   const now = new Date()
@@ -223,13 +229,16 @@ const fetchEvents = async () => {
     
     const today = new Date().toISOString().split('T')[0]
     const todayEnd = today + ' 23:59:59'
-    const weekRange = getWeekRange()
+    const weekRange = getWeekRangeFor(0)
+    const nextWeek = getWeekRangeFor(1)
     
     const todayData = await getEventsInRange(today, todayEnd)
     const weekData = await getEventsInRange(weekRange.start + ' 00:00:00', weekRange.end + ' 23:59:59')
+    const nextWeekData = await getEventsInRange(nextWeek.start + ' 00:00:00', nextWeek.end + ' 23:59:59')
     
     todayEvents.value = (todayData || []).sort((a, b) => new Date(a.starts_on) - new Date(b.starts_on))
     weekEvents.value = (weekData || []).sort((a, b) => new Date(a.starts_on) - new Date(b.starts_on))
+    nextWeekEvents.value = (nextWeekData || []).sort((a, b) => new Date(a.starts_on) - new Date(b.starts_on))
   } catch (e) {
     console.error('Error fetching events:', e)
   } finally {
@@ -406,57 +415,95 @@ onUnmounted(() => {
         </div>
       </div>
       
-      <!-- Right Column: This Week -->
-      <div class="flex flex-col">
-        <div class="bg-white rounded-lg shadow-sm p-4 flex-1 flex flex-col overflow-hidden">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="text-lg font-bold text-gray-800 flex items-center">
-              <i class="fas fa-calendar-week text-purple-500 mr-2"></i>
-              Ta teden
-              <span v-if="weekEvents.length > 0" class="ml-2 bg-purple-100 text-purple-600 text-xs font-bold px-2 py-0.5 rounded-full">
-                {{ weekEvents.length }}
-              </span>
-            </h3>
-          </div>
-          
-          <div v-if="loading" class="flex justify-center items-center flex-1">
-            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
-          </div>
-          
-          <div v-else-if="weekEvents.length === 0" class="flex-1 flex items-center justify-center text-gray-400">
-            <div class="text-center">
-              <i class="fas fa-calendar text-3xl mb-2"></i>
-              <p>Ni dogodkov ta teden</p>
+      <!-- Right Column: This Week & Next Week -->
+      <div class="flex flex-col gap-4">
+        <div class="bg-white rounded-lg shadow-sm flex-1 flex flex-col overflow-hidden">
+          <div class="p-4 flex-1 flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                <i class="fas fa-calendar-week text-purple-500 mr-2"></i>
+                Ta teden
+                <span v-if="weekEvents.length > 0" class="ml-2 bg-purple-100 text-purple-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {{ weekEvents.length }}
+                </span>
+              </h3>
             </div>
-          </div>
-          
-          <div v-else class="flex-1 overflow-auto space-y-1">
-            <div v-for="group in groupedWeekEvents.slice(0, 7)" :key="group.date_group" class="mb-2">
-              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                {{ formatDayHeader(group.date_group) }}
-              </div>
-              <div class="space-y-1">
-                <div v-for="event in group.events.slice(0, 3)" :key="event.name"
-                     class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
-                     @click="router.push(`/event/${event.name}`)">
-                  <span v-if="event.starts_on" class="text-xs text-gray-400 w-10 shrink-0">
-                    {{ new Date(event.starts_on).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }) }}
-                  </span>
-                  <span class="text-sm text-gray-700 truncate flex-1">{{ event.subject }}</span>
-                  <span v-if="event.event_category" 
-                        class="shrink-0 px-1.5 py-0.5 rounded text-xs"
-                        :style="{ backgroundColor: (event.color || '#888') + '15', color: event.color || '#888' }">
-                    {{ event.event_category }}
-                  </span>
+            
+            <div v-if="loading" class="flex justify-center items-center flex-1">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+            </div>
+            
+            <div v-else-if="weekEvents.length === 0" class="flex-1 flex items-center justify-center text-gray-400 min-h-[60px]">
+              <p class="text-sm">Ni dogodkov ta teden</p>
+            </div>
+            
+            <div v-else class="flex-1 overflow-auto space-y-1">
+              <div v-for="group in groupedWeekEvents.slice(0, 7)" :key="group.date_group" class="mb-1">
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">
+                  {{ formatDayHeader(group.date_group) }}
+                </div>
+                <div class="space-y-0.5">
+                  <div v-for="event in group.events.slice(0, 3)" :key="event.name"
+                       class="flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded cursor-pointer transition-colors"
+                       @click="router.push(`/event/${event.name}`)">
+                    <span v-if="event.starts_on" class="text-xs text-gray-400 w-10 shrink-0">
+                      {{ new Date(event.starts_on).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }) }}
+                    </span>
+                    <span class="text-sm text-gray-700 truncate flex-1">{{ event.subject }}</span>
+                    <span v-if="event.event_category" 
+                          class="shrink-0 px-1.5 py-0.5 rounded text-xs"
+                          :style="{ backgroundColor: (event.color || '#888') + '15', color: event.color || '#888' }">
+                      {{ event.event_category }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          
-          <div v-if="weekEvents.length > 5" class="mt-2 pt-2 border-t border-gray-100">
-            <button @click="goToCalendar" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-              Prikaži vse ({{ weekEvents.length }}) <i class="fas fa-arrow-right ml-1"></i>
-            </button>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-sm flex-1 flex flex-col overflow-hidden">
+          <div class="p-4 flex-1 flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-base font-bold text-gray-800 flex items-center">
+                <i class="fas fa-calendar-week text-indigo-400 mr-2"></i>
+                Naslednji teden
+                <span v-if="nextWeekEvents.length > 0" class="ml-2 bg-indigo-100 text-indigo-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {{ nextWeekEvents.length }}
+                </span>
+              </h3>
+            </div>
+            
+            <div v-if="loading" class="flex justify-center items-center flex-1">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-400"></div>
+            </div>
+            
+            <div v-else-if="nextWeekEvents.length === 0" class="flex-1 flex items-center justify-center text-gray-400 min-h-[60px]">
+              <p class="text-sm">Ni dogodkov naslednji teden</p>
+            </div>
+            
+            <div v-else class="flex-1 overflow-auto space-y-1">
+              <div v-for="group in nextWeekGroupedEvents.slice(0, 7)" :key="group.date_group" class="mb-1">
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">
+                  {{ formatDayHeader(group.date_group) }}
+                </div>
+                <div class="space-y-0.5">
+                  <div v-for="event in group.events.slice(0, 3)" :key="event.name"
+                       class="flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded cursor-pointer transition-colors"
+                       @click="router.push(`/event/${event.name}`)">
+                    <span v-if="event.starts_on" class="text-xs text-gray-400 w-10 shrink-0">
+                      {{ new Date(event.starts_on).toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }) }}
+                    </span>
+                    <span class="text-sm text-gray-700 truncate flex-1">{{ event.subject }}</span>
+                    <span v-if="event.event_category" 
+                          class="shrink-0 px-1.5 py-0.5 rounded text-xs"
+                          :style="{ backgroundColor: (event.color || '#888') + '15', color: event.color || '#888' }">
+                      {{ event.event_category }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
