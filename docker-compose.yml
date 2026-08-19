@@ -6,7 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - VITE_FRAPPE_URL=https://muri.osaz.si
         - VITE_FRAPPE_API_KEY=22814cf7e914d0a
         - VITE_FRAPPE_API_SECRET=141ec7d4d49e850
     ports:
