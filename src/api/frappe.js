@@ -5,12 +5,26 @@ const API_BASE_URL = isDev ? '' : import.meta.env.VITE_FRAPPE_URL || ''
 const API_KEY = import.meta.env.VITE_FRAPPE_API_KEY || ''
 const API_SECRET = import.meta.env.VITE_FRAPPE_API_SECRET || ''
 
+export const getCsrfToken = () => {
+  const cookies = document.cookie.split(';')
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=')
+    if (name === 'frappecsrf') {
+      return decodeURIComponent(value)
+    }
+  }
+  return null
+}
+
+const csrfToken = getCsrfToken()
+
 const frappeApi = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    ...(csrfToken && { 'X-Frappe-CSRF-Token': csrfToken }),
   },
 })
 
@@ -77,6 +91,13 @@ export const callMethod = async (method, args = {}) => {
 
 export const login = async (usr, pwd) => {
   const response = await frappeApi.post('/api/method/login', { usr, pwd })
+  
+  // Refresh CSRF token after login (token may have changed)
+  const newCsrfToken = getCsrfToken()
+  if (newCsrfToken) {
+    frappeApi.defaults.headers.common['X-Frappe-CSRF-Token'] = newCsrfToken
+  }
+  
   return response.data
 }
 
