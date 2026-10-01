@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import SearchFilter from '@/components/SearchFilter.vue'
 import MonthNav from '@/components/MonthNav.vue'
 import EventCard from '@/components/EventCard.vue'
-import { getAllEvents, getEventsForIdentity } from '@/modules/calendar/api/events'
+import { getAllEvents, getEvents } from '@/modules/calendar/api/events'
 import { checkAuth, getAuthUsername } from '@/api/frappe'
 
 const route = useRoute()
@@ -114,14 +114,12 @@ const fetchEvents = async () => {
     events.value = publishedEvents
     
     if (username || user) {
-      const unpublishedEvents = await getEventsForIdentity(
-        [username, user],
-        [
-          ['published', '=', 0],
-          ...(searchQuery ? [['subject', 'like', `%${searchQuery}%`]] : []),
-          ...(category ? [['event_category', '=', category]] : []),
-        ]
-      )
+      const unpublishedEvents = await getEvents([
+        ['published', '=', 0],
+        ['owner', '=', username || user],
+        ...(searchQuery ? [['subject', 'like', `%${searchQuery}%`]] : []),
+        ...(category ? [['event_category', '=', category]] : []),
+      ])
       
       const existingNames = new Set(events.value.map(e => e.name))
       for (const event of unpublishedEvents) {
