@@ -3,8 +3,17 @@ import { getQuickEntryUsers } from '@/modules/admin/api/hitrivpis'
 // These two must stay in sync with the PINs already stored in HitriVpis.
 // Changing them invalidates every PIN that has been set so far.
 export const PBKDF2_ITERATIONS = 600000
+export const PIN_LENGTH = 6
 
 const DEFAULT_SALT = 'osaz-hitri-vpis'
+
+// crypto.subtle only exists in a secure context, so the PIN flow cannot work on a
+// page served over plain HTTP. getRandomValues does work, which is why only the
+// derivation was failing.
+export const PIN_CRYPTO_UNAVAILABLE =
+  'Preverjanje PIN zahteva HTTPS. Spletno mesto je odprto prek HTTP - odpri ga prek https:// ali na localhost.'
+
+export const isPinCryptoAvailable = () => typeof crypto !== 'undefined' && !!crypto.subtle
 
 let usersCache = null
 
@@ -17,6 +26,9 @@ export const randomSalt = () => {
 }
 
 export const derivePin = async (pin, salt) => {
+  if (!isPinCryptoAvailable()) {
+    throw new Error(PIN_CRYPTO_UNAVAILABLE)
+  }
   const enc = new TextEncoder()
   const key = await crypto.subtle.importKey('raw', enc.encode(pin), 'PBKDF2', false, ['deriveBits'])
   const bits = await crypto.subtle.deriveBits(

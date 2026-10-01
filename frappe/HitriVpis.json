@@ -51,7 +51,7 @@
       "label": "Aktivna"
     },
     {
-      "description": "PBKDF2-SHA256 zgoščena vrednost 8-mestnega PIN-a (64 znaki). Piše ga samo aplikacija ob nastavitvi PIN-a, v Frappe ga ne urejaj.",
+      "description": "PBKDF2-SHA256 zgoščena vrednost 6-mestnega PIN-a (64 znaki). Piše ga samo aplikacija ob nastavitvi PIN-a, v Frappe ga ne urejaj.",
       "fieldname": "pin_hash",
       "fieldtype": "Data",
       "label": "PIN (zgoščen)",

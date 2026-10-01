@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { derivePin, randomSalt, invalidateQuickEntryUsers } from '@/api/quickEntry'
+import { derivePin, randomSalt, invalidateQuickEntryUsers, isPinCryptoAvailable, PIN_CRYPTO_UNAVAILABLE, PIN_LENGTH } from '@/api/quickEntry'
 import { getQuickEntryUsers, updateQuickEntryUser } from '@/modules/admin/api/hitrivpis'
 
-const PIN_LENGTH = 8
+const PIN_PATTERN = new RegExp(`^\\d{${PIN_LENGTH}}$`)
 
 const users = ref([])
 const loading = ref(true)
@@ -16,7 +16,7 @@ const showPin = ref(null)
 
 const siteSalt = computed(() => users.value.find((user) => user.sol)?.sol || '')
 const pending = computed(() => users.value.filter((user) => !user.pin_hash).length)
-const canSave = computed(() => !saving.value && !!selected.value && /^\d{8}$/.test(pin.value))
+const canSave = computed(() => !saving.value && !!selected.value && PIN_PATTERN.test(pin.value))
 
 const label = (user) => user.display || user.priimek_ime || user.name
 
@@ -50,6 +50,11 @@ const save = async () => {
   if (!canSave.value) return
   error.value = null
   notice.value = null
+
+  if (!isPinCryptoAvailable()) {
+    error.value = PIN_CRYPTO_UNAVAILABLE
+    return
+  }
 
   saving.value = true
   try {

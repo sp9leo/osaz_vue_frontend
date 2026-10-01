@@ -76,7 +76,7 @@ npm run build
 
 ### Quick event entry
 
-The "Hitri vpis" button in the toolbar lets anyone post an event after entering an 8-digit PIN,
+The "Hitri vpis" button in the toolbar lets anyone post an event after entering a 6-digit PIN,
 without a full Frappe login. Every user has their own PIN; the PIN identifies the person, who is
 then stored as "Dodal" on the event.
 
@@ -102,13 +102,17 @@ the value is generated (or typed), shown once, hashed, and discarded.
 
 `pin_hash` holds the PBKDF2-SHA256 derivation of the PIN with 600 000 iterations
 (`PBKDF2_ITERATIONS` in `src/api/quickEntry.js`); changing that constant invalidates every PIN
-that has been set. Derivation uses `crypto.subtle`, so the app must be served over HTTPS (or
-localhost). The salt is shared by all rows so a single derivation per login is enough - per-user
+that has been set. `PIN_LENGTH` lives in the same file and is the single source for both the
+admin page and the PIN screen - changing it invalidates every PIN too. Derivation uses
+`crypto.subtle`, so the app must be served over HTTPS (or localhost) - `crypto.subtle` does not
+exist on a page served over plain HTTP, and the PIN screens will refuse to run with a message
+saying so. The salt is shared by all rows so a single derivation per login is enough - per-user
 salts would require one derivation per user, since PIN-only login has no username to key on.
 
 The field model deliberately mirrors `teachers.json` in the separate reports app
-(`osaz2026/reports`), which uses the same 8-digit PIN. The two apps run against **different
-Frappe instances**, so nothing syncs between them - the same 8 digits simply work in both.
+(`osaz2026/reports`). The two apps run against **different Frappe instances**, so nothing syncs
+between them. Note that the PIN length does not match the reports app, which uses 8 digits - the
+same code therefore works in only one of the two apps.
 
 Note that the hash is readable by anyone who opens developer tools on the PIN screen. PBKDF2 only
 makes offline cracking expensive, not impossible. Treat PINs as kiosk convenience, not security,

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { createEvent, getUsedEventCategories } from '@/modules/calendar/api/events'
-import { authenticatePin, fetchQuickEntryUsers } from '@/api/quickEntry'
+import { authenticatePin, fetchQuickEntryUsers, isPinCryptoAvailable, PIN_CRYPTO_UNAVAILABLE, PIN_LENGTH } from '@/api/quickEntry'
 
 const props = defineProps({
   show: {
@@ -12,7 +12,6 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'saved'])
 
-const PIN_LENGTH = 8
 const REVEAL_DELAY = 1000
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'clear', '0', 'back']
 
@@ -92,8 +91,8 @@ const checkUsers = async () => {
 const submitPin = async () => {
   pinError.value = null
 
-  if (typeof crypto === 'undefined' || !crypto.subtle) {
-    pinError.value = 'Preverjanje PIN ni na voljo v tem brskalniku'
+  if (!isPinCryptoAvailable()) {
+    pinError.value = PIN_CRYPTO_UNAVAILABLE
     return
   }
   if (pin.value.length !== PIN_LENGTH) {
