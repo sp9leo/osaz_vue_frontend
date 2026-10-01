@@ -63,9 +63,9 @@ const emptyForm = () => {
     description: '',
     event_category: '',
     location: '',
-    predvideno: 0,
+    predvideno: false,
     status: 'Open',
-    published: 1,
+    published: true,
   }
 }
 

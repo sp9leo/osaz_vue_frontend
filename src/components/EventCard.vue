@@ -2,6 +2,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { checkAuth, getAuthUsername } from '@/api/frappe'
+import { getEventAuthor, isEventAuthor } from '@/modules/calendar/api/events'
 
 const props = defineProps({
   event: {
@@ -28,11 +29,12 @@ onMounted(async () => {
 
 const isOwner = computed(() => {
   if (!currentUser.value) return false
-  return props.event.owner === currentUser.value || 
-         props.event.owner === currentUserFull.value ||
-         props.event.owner === localStorage.getItem('frappe_user') ||
-         props.event.owner === localStorage.getItem('frappe_user_fullname') ||
-         (currentUser.value && props.event.owner?.includes(currentUser.value))
+  return isEventAuthor(props.event, [
+    currentUser.value,
+    currentUserFull.value,
+    localStorage.getItem('frappe_user'),
+    localStorage.getItem('frappe_user_fullname'),
+  ])
 })
 
 const isPublished = computed(() => {
@@ -186,7 +188,7 @@ const toggleDescription = () => {
       <div class="flex justify-end items-center mt-3 pt-2 border-t border-gray-100">
         <span class="text-gray-400 text-xs italic mr-2">
           <i class="fas fa-info-circle mr-1"></i>
-          Zadnja sprememba: {{ formatDateTime(event.modified) }}<span v-if="event.custom_added_by"> - {{ event.custom_added_by }}</span> - {{ event.name }} {{event.owner}}
+          Dodal: {{ getEventAuthor(event) }} - {{ event.name }} - Zadnja sprememba: {{ formatDateTime(event.modified) }}
         </span>
         <button type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded ml-1" @click="goToEvent" :title="event.name">
           <i class="fas fa-book-reader"></i>
@@ -250,7 +252,7 @@ const toggleDescription = () => {
       <div class="flex justify-end items-center mt-3 pt-2 border-t border-gray-100">
         <span class="text-gray-400 text-xs italic mr-2">
           <i class="fas fa-info-circle mr-1"></i>
-          Zadnja sprememba: {{ formatDateTime(event.modified) }}<span v-if="event.owner"> - {{ event.owner }}</span> - {{ event.name }}
+          Dodal: {{ getEventAuthor(event) }} - {{ event.name }} - Zadnja sprememba: {{ formatDateTime(event.modified) }}
         </span>
         <button type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded ml-1" @click="goToEvent" :title="event.name">
           <i class="fas fa-book-reader"></i>

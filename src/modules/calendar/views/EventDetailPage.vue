@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getResource, checkAuth, getAuthUsername } from '@/api/frappe'
+import { getEventAuthor, isEventAuthor } from '@/modules/calendar/api/events'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,11 +13,12 @@ const error = ref(null)
 const currentUser = ref('')
 
 const isOwner = computed(() => {
-  if (!currentUser.value || !event.value?.owner) return false
-  return event.value.owner === currentUser.value ||
-         event.value.owner === localStorage.getItem('frappe_user') ||
-         event.value.owner === localStorage.getItem('frappe_user_fullname') ||
-         (currentUser.value && event.value.owner?.includes(currentUser.value))
+  if (!currentUser.value || !event.value) return false
+  return isEventAuthor(event.value, [
+    currentUser.value,
+    localStorage.getItem('frappe_user'),
+    localStorage.getItem('frappe_user_fullname'),
+  ])
 })
 
 const getLocalISOString = (date) => {
@@ -193,7 +195,7 @@ onMounted(fetchEvent)
         <div class="flex justify-between items-center text-sm text-gray-500">
           <span>
             <i class="fas fa-info-circle mr-1"></i>
-            Zadnja sprememba: {{ formatDateTime(event.modified) }}<span v-if="event.owner"> - {{ event.owner }}</span>
+            Dodal: {{ getEventAuthor(event) }} - Zadnja sprememba: {{ formatDateTime(event.modified) }}
           </span>
           <div class="flex items-center gap-2">
             <span class="font-mono text-xs">{{ event.name }}</span>

@@ -20,9 +20,9 @@ const form = ref({
   description: '',
   event_category: '',
   location: '',
-  predvideno: 0,
+  predvideno: false,
   status: 'Open',
-  published: 1,
+  published: true,
 })
 
 const fetchCategories = async () => {
@@ -223,7 +223,6 @@ onMounted(async () => {
                   type="checkbox"
                   id="published"
                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  :checked="form.published"
                 />
                 <label for="published" class="text-sm text-gray-700">
                   Objavljen
@@ -236,7 +235,6 @@ onMounted(async () => {
                   type="checkbox"
                   id="predvideno"
                   class="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
-                  :checked="form.predvideno"
                 />
                 <label for="predvideno" class="text-sm text-gray-700">
                   Predvideno
