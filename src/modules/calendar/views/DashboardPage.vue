@@ -7,8 +7,11 @@ import EditObvestiloModal from '@/components/EditObvestiloModal.vue'
 import { getEventsInRange } from '@/modules/calendar/api/events'
 import { getAllObvestila } from '@/modules/calendar/api/obvestila'
 import { checkAuth, getAuthUsername } from '@/api/frappe'
+import { getQuoteOfTheDay } from '@/data/quotes'
 
 const router = useRouter()
+
+const quoteOfTheDay = getQuoteOfTheDay()
 
 const todayEvents = ref([])
 const weekEvents = ref([])
@@ -343,8 +346,13 @@ onUnmounted(() => {
             <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
           </div>
           
-          <div v-else-if="validAnnouncements.length === 0" class="text-center text-gray-400 py-4">
-            <p>Ni obvestil</p>
+          <div v-else-if="validAnnouncements.length === 0" class="flex flex-col items-center py-4">
+            <div class="w-full border border-dashed border-gray-200 rounded-lg px-4 py-5 text-center">
+              <i class="fas fa-quote-left text-blue-300 text-xl mb-2"></i>
+              <p class="text-sm text-gray-600 italic leading-relaxed">{{ quoteOfTheDay.text }}</p>
+              <p class="text-xs text-gray-400 mt-2">— {{ quoteOfTheDay.author }}</p>
+            </div>
+            <p class="text-xs text-gray-400 mt-3">Ni obvestil</p>
           </div>
           
           <div v-else class="space-y-3">
