@@ -55,8 +55,11 @@ frappeApi.interceptors.response.use(
 )
 
 frappeApi.interceptors.request.use((config) => {
-  if (window.csrf_token) {
-    config.headers['X-Frappe-CSRF-Token'] = window.csrf_token
+  // Read the token per request: after login it only exists in the cookie,
+  // the module-level capture happens before there is a session.
+  const token = window.csrf_token || getCsrfToken()
+  if (token) {
+    config.headers['X-Frappe-CSRF-Token'] = token
   }
   return config
 })
@@ -135,21 +138,29 @@ export const setAuthUser = async (username) => {
 
 const ADMIN_ROLES = ['Administrator', 'System Manager']
 
+const readUserRoles = async (username, useSession) => {
+  const config = useSession ? { headers: { Authorization: null } } : {}
+  const response = await frappeApiRead.get(`/api/resource/User/${username}`, config)
+  const userData = response.data?.data || response.data
+  return Array.isArray(userData?.roles) ? userData.roles : []
+}
+
 export const isFrappeAdmin = async (username) => {
   if (!username) return false
 
   try {
-    const result = await getDoctypeList(
-      'Has Role',
-      [['parent', '=', username], ['role', 'in', ADMIN_ROLES]],
-      ['role'],
-      null,
-      5
-    )
-    const data = result.data || result
-    return Array.isArray(data) && data.length > 0
+    // Has Role is a child table, which /api/resource refuses to list (403), so the
+    // roles come from the user document. The session is tried first, because a user
+    // may always read itself; the API key is the fallback.
+    let roles
+    try {
+      roles = await readUserRoles(username, true)
+    } catch {
+      roles = await readUserRoles(username, false)
+    }
+    return roles.some((role) => ADMIN_ROLES.includes(role.role))
   } catch (error) {
-    console.log('Could not check user roles:', error)
+    console.log('Could not check user roles:', error?.response?.status || error)
     return false
   }
 }

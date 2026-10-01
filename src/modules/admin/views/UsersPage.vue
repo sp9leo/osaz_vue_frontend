@@ -70,7 +70,10 @@ const save = async () => {
     flash(`PIN za ${name} je nastavljen.`)
     await loadUsers()
   } catch (e) {
-    error.value = 'Napaka: ' + (e.message || 'Neznana napaka')
+    const status = e.response?.status
+    error.value = status === 401 || status === 403
+      ? 'Frappe zavrnil zapis. Prijavite se kot Administrator ali System Manager in osvežite stran.'
+      : 'Napaka: ' + (e.message || 'Neznana napaka')
   } finally {
     saving.value = false
   }

@@ -22,7 +22,15 @@ export const getQuickEntryUser = async (name) => {
 
 // Identity fields (display, priimek_ime, user, aktivna) are maintained in Frappe.
 // The app only ever writes the PIN hash and the site-wide salt.
+//
+// The shared API key is dropped here on purpose: with it, Frappe would authorize
+// this write as the API key user and the admin check in the UI would be the only
+// thing standing between an anonymous visitor and the PINs.
 export const updateQuickEntryUser = async (name, userData) => {
-  const response = await frappeApi.put(`/api/resource/${DOCTYPE}/${name}`, { data: userData, skipInterceptor: true })
+  const response = await frappeApi.put(`/api/resource/${DOCTYPE}/${name}`, {
+    data: userData,
+    skipInterceptor: true,
+    headers: { Authorization: null },
+  })
   return response.data
 }
