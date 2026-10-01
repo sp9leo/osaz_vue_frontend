@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { checkAuth } from '@/api/frappe'
+import { checkAuth, getAuthUsername, isFrappeAdmin } from '@/api/frappe'
 
 const routes = [
   {
@@ -47,6 +47,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/admin/uporabniki',
+    name: 'admin-uporabniki',
+    component: () => import('@/modules/admin/views/UsersPage.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
     path: '/login',
     name: 'login',
     component: () => import('@/views/LoginPage.vue'),
@@ -59,16 +65,26 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  if (to.meta.requiresAuth) {
-    const user = await checkAuth()
-    if (!user) {
-      next({ name: 'login', query: { redirect: to.fullPath } })
-    } else {
-      next()
-    }
-  } else {
+  if (!to.meta.requiresAuth && !to.meta.requiresAdmin) {
     next()
+    return
   }
+
+  const user = await checkAuth()
+  if (!user) {
+    next({ name: 'login', query: { redirect: to.fullPath } })
+    return
+  }
+
+  if (to.meta.requiresAdmin) {
+    const isAdmin = await isFrappeAdmin(getAuthUsername() || user)
+    if (!isAdmin) {
+      next({ name: 'home' })
+      return
+    }
+  }
+
+  next()
 })
 
 export default router

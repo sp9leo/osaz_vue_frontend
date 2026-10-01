@@ -74,6 +74,46 @@ npm run build
 |----------|-------------|---------|
 | VITE_FRAPPE_URL | Frappe server URL | http://localhost:8000 |
 
+### Quick event entry
+
+The "Hitri vpis" button in the toolbar lets anyone post an event after entering an 8-digit PIN,
+without a full Frappe login. Every user has their own PIN; the PIN identifies the person, who is
+then stored as "Dodal" on the event.
+
+People live in the Frappe DocType `HitriVpis` and are maintained in Desk, not in this app. Fields:
+
+| Field | Owner | Purpose |
+|-------|-------|---------|
+| `display` | Desk | shown name, e.g. `Blatnik Tea` |
+| `priimek_ime` | Desk | folder-style id, e.g. `Blatnik_Tea`, matching the reports app |
+| `user` | Desk | Frappe email of the user |
+| `aktivna` | Desk | inactive users cannot use quick entry |
+| `pin_hash` | app | PBKDF2 hash of the PIN |
+| `sol` | app | site-wide salt, identical on every row |
+
+Create the DocType once by importing `frappe/HitriVpis.json` (Desk → Customize → Import Doc Type).
+It ships with read permission for Guest, because the PIN screen compares hashes in the browser.
+
+The page at `/admin/uporabniki` (Administrator and System Manager only) only assigns PINs - it
+cannot add or edit people. That split is deliberate: the Frappe Desk cannot hash, so PINs would be
+stored in plaintext if they were typed there, and the DocType has to stay Guest-readable for the
+browser check. Only this page writes `pin_hash` and `sol`, so the plaintext PIN exists nowhere -
+the value is generated (or typed), shown once, hashed, and discarded.
+
+`pin_hash` holds the PBKDF2-SHA256 derivation of the PIN with 600 000 iterations
+(`PBKDF2_ITERATIONS` in `src/api/quickEntry.js`); changing that constant invalidates every PIN
+that has been set. Derivation uses `crypto.subtle`, so the app must be served over HTTPS (or
+localhost). The salt is shared by all rows so a single derivation per login is enough - per-user
+salts would require one derivation per user, since PIN-only login has no username to key on.
+
+The field model deliberately mirrors `teachers.json` in the separate reports app
+(`osaz2026/reports`), which uses the same 8-digit PIN. The two apps run against **different
+Frappe instances**, so nothing syncs between them - the same 8 digits simply work in both.
+
+Note that the hash is readable by anyone who opens developer tools on the PIN screen. PBKDF2 only
+makes offline cracking expensive, not impossible. Treat PINs as kiosk convenience, not security,
+and move the check to a whitelisted server method when that starts to matter.
+
 ## Frappe API Integration
 
 The app uses Frappe's REST API:

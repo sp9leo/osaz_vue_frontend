@@ -1,0 +1,112 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "autoname": "hash",
+  "creation": "2026-09-29 00:00:00.000000",
+  "default_print_format": "",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "display",
+    "priimek_ime",
+    "user",
+    "aktivna",
+    "pin_hash",
+    "sol"
+  ],
+  "fields": [
+    {
+      "fieldname": "display",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Prikazno ime",
+      "length": "140",
+      "reqd": 1
+    },
+    {
+      "description": "Ime za mapo, oblika Priimek_Ime (npr. Blatnik_Tea). Mora biti enako kot ime mape v aplikaciji poročil.",
+      "fieldname": "priimek_ime",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Priimek_Ime",
+      "length": "140"
+    },
+    {
+      "description": "E-poštna naslova uporabnika v Frappe (npr. tea.blatnik@o-azilb.si).",
+      "fieldname": "user",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Frappe uporabnik (e-pošta)",
+      "length": "140"
+    },
+    {
+      "default": "1",
+      "fieldname": "aktivna",
+      "fieldtype": "Check",
+      "in_list_view": 1,
+      "label": "Aktivna"
+    },
+    {
+      "description": "PBKDF2-SHA256 zgoščena vrednost 8-mestnega PIN-a (64 znaki). Piše ga samo aplikacija ob nastavitvi PIN-a, v Frappe ga ne urejaj.",
+      "fieldname": "pin_hash",
+      "fieldtype": "Data",
+      "label": "PIN (zgoščen)",
+      "length": "64"
+    },
+    {
+      "description": "Sol (32 znaka), enaka pri vseh uporabnikih. Piše jo samo aplikacija ob prvem nastavljanju PIN-a.",
+      "fieldname": "sol",
+      "fieldtype": "Data",
+      "label": "Sol",
+      "length": "32"
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "links": [],
+  "modified": "2026-09-29 00:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "Custom",
+  "name": "HitriVpis",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "read": 1,
+      "role": "Guest"
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Administrator",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "quick_entry": 1,
+  "row_format": "Dynamic",
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "title_field": "display",
+  "track_changes": 1
+}

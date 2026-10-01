@@ -66,6 +66,16 @@ export const getEventCategories = async () => {
   return data.map((item) => item.name)
 }
 
+export const getUsedEventCategories = async (limit = 500) => {
+  const result = await getDoctypeList('Dogodek', [], ['event_category'], 'modified desc', limit)
+  const data = result.data || result
+  if (!Array.isArray(data)) {
+    return []
+  }
+  return [...new Set(data.map((row) => row.event_category).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'sl'))
+}
+
 export const getEventByName = async (name) => {
   const result = await getResource(`Dogodek/${name}`)
   return result.data || result

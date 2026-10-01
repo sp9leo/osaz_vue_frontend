@@ -1,21 +1,26 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { RouterView, RouterLink, useRoute, useRouter } from 'vue-router'
-import { checkAuth, logout } from '@/api/frappe'
+import { checkAuth, getAuthUsername, isFrappeAdmin, logout } from '@/api/frappe'
+import QuickEventModal from '@/components/QuickEventModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 
 const isLoggedIn = ref(false)
+const isAdmin = ref(false)
 const currentUser = ref('')
+const showQuickEvent = ref(false)
 
 const checkLoginStatus = async () => {
   const user = await checkAuth()
   if (user) {
     isLoggedIn.value = true
     currentUser.value = user
+    isAdmin.value = await isFrappeAdmin(getAuthUsername() || user)
   } else {
     isLoggedIn.value = false
+    isAdmin.value = false
     currentUser.value = ''
   }
 }
@@ -23,6 +28,7 @@ const checkLoginStatus = async () => {
 const handleLogout = async () => {
   await logout()
   isLoggedIn.value = false
+  isAdmin.value = false
   currentUser.value = ''
   router.push('/')
 }
@@ -61,9 +67,26 @@ watch(() => route.fullPath, checkLoginStatus, { immediate: true })
               >
                 Arhiv
               </RouterLink>
+              <a
+  href="https://noco.osaz.si/calendar/supervision"
+  target="_blank"
+  rel="noopener noreferrer"
+  class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+>
+  Dežurstva
+</a>
+              
+                
             </div>
           </div>
           <div class="flex items-center">
+            <button
+              @click="showQuickEvent = true"
+              class="mr-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors"
+            >
+              <i class="fas fa-bolt mr-1"></i>
+              Hitri vpis
+            </button>
             <RouterLink
               v-if="isLoggedIn"
               to="/event/new"
@@ -79,6 +102,15 @@ watch(() => route.fullPath, checkLoginStatus, { immediate: true })
             >
               <i class="fas fa-bullhorn mr-1"></i>
               Dodaj obvestilo
+            </RouterLink>
+
+            <RouterLink
+              v-if="isAdmin"
+              to="/admin/uporabniki"
+              class="mr-4 px-3 py-1.5 bg-gray-700 hover:bg-gray-800 text-white text-sm font-medium rounded-md transition-colors"
+            >
+              <i class="fas fa-key mr-1"></i>
+              PIN-i
             </RouterLink>
             
             <span v-if="isLoggedIn" class="text-sm text-gray-500 mr-4">
@@ -105,5 +137,6 @@ watch(() => route.fullPath, checkLoginStatus, { immediate: true })
       </div>
     </nav>
     <RouterView />
+    <QuickEventModal :show="showQuickEvent" @close="showQuickEvent = false" />
   </div>
 </template>

@@ -133,4 +133,25 @@ export const setAuthUser = async (username) => {
   }
 }
 
+const ADMIN_ROLES = ['Administrator', 'System Manager']
+
+export const isFrappeAdmin = async (username) => {
+  if (!username) return false
+
+  try {
+    const result = await getDoctypeList(
+      'Has Role',
+      [['parent', '=', username], ['role', 'in', ADMIN_ROLES]],
+      ['role'],
+      null,
+      5
+    )
+    const data = result.data || result
+    return Array.isArray(data) && data.length > 0
+  } catch (error) {
+    console.log('Could not check user roles:', error)
+    return false
+  }
+}
+
 export default frappeApi
