@@ -55,6 +55,10 @@ export const authenticatePin = async (pin) => {
 
   // One site-wide salt is shared by all rows, so a single derive per login is enough.
   const salt = users.find((user) => user.sol)?.sol || DEFAULT_SALT
+  const withoutSalt = users.filter((user) => !user.sol)
+  if (withoutSalt.length) {
+    console.warn('Hitri vpis: sol manjka pri', withoutSalt.map((u) => u.display).join(', '))
+  }
   const hash = await derivePin(pin, salt)
   const matches = users.filter((user) => String(user.pin_hash || '').trim().toLowerCase() === hash)
 
