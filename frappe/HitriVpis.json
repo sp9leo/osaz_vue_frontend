@@ -11,9 +11,8 @@
     "display",
     "priimek_ime",
     "user",
-    "aktivna",
-    "pin_hash",
-    "sol"
+    "dovoljen",
+    "pin"
   ],
   "fields": [
     {
@@ -35,7 +34,7 @@
       "length": "140"
     },
     {
-      "description": "E-poštna naslova uporabnika v Frappe (npr. tea.blatnik@o-azilb.si).",
+      "description": "E-poštni naslov uporabnika v Frappe (npr. tea.blatnik@o-azilb.si). Piše se ga kot vira podatkov za hitri vpis.",
       "fieldname": "user",
       "fieldtype": "Data",
       "in_list_view": 1,
@@ -45,24 +44,19 @@
     },
     {
       "default": "1",
-      "fieldname": "aktivna",
+      "description": "Samo uporabniki z dovoljenjem se lahko prijavijo s PIN-om. Upravlja se v skrbniškem delu aplikacije.",
+      "fieldname": "dovoljen",
       "fieldtype": "Check",
       "in_list_view": 1,
-      "label": "Aktivna"
+      "label": "Dovoljen hitri vpis"
     },
     {
-      "description": "PBKDF2-SHA256 zgoščena vrednost 6-mestnega PIN-a (64 znaki). Piše ga samo aplikacija ob nastavitvi PIN-a, v Frappe ga ne urejaj.",
-      "fieldname": "pin_hash",
+      "description": "6-mestni PIN za hitri vpis. Piše ga samo aplikacija v skrbniškem delu; v Frappe ga ne urejaj. Primerjava PIN-a poteka na strežniku v intranet/api.py.",
+      "fieldname": "pin",
       "fieldtype": "Data",
-      "label": "PIN (zgoščen)",
-      "length": "64"
-    },
-    {
-      "description": "Sol (32 znaka), enaka pri vseh uporabnikih. Piše jo samo aplikacija ob prvem nastavljanju PIN-a.",
-      "fieldname": "sol",
-      "fieldtype": "Data",
-      "label": "Sol",
-      "length": "32"
+      "in_list_view": 1,
+      "label": "PIN",
+      "length": "6"
     }
   ],
   "index_web_pages_for_search": 1,
@@ -73,10 +67,6 @@
   "name": "HitriVpis",
   "owner": "Administrator",
   "permissions": [
-    {
-      "read": 1,
-      "role": "Guest"
-    },
     {
       "create": 1,
       "delete": 1,

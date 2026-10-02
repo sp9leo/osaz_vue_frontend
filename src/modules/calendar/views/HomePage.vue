@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import WeatherWidget from '@/components/WeatherWidget.vue'
 import EventCard from '@/components/EventCard.vue'
-import { getUpcomingEvents, getEvents } from '@/modules/calendar/api/events'
+import { getUpcomingEvents, getEventsForIdentity } from '@/modules/calendar/api/events'
 import { checkAuth, getAuthUsername } from '@/api/frappe'
 
 const router = useRouter()
@@ -113,11 +113,13 @@ const fetchEvents = async () => {
     events.value = publishedEvents
     
     if (username || user) {
-      const unpublishedEvents = await getEvents([
-        ['starts_on', '>=', new Date().toISOString().split('T')[0]],
-        ['published', '=', 0],
-        ['owner', '=', username || user]
-      ])
+      const unpublishedEvents = await getEventsForIdentity(
+        [username, user],
+        [
+          ['starts_on', '>=', new Date().toISOString().split('T')[0]],
+          ['published', '=', 0],
+        ]
+      )
       
       const existingNames = new Set(events.value.map(e => e.name))
       for (const event of unpublishedEvents) {

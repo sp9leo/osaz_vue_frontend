@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { createEvent, getUsedEventCategories } from '@/modules/calendar/api/events'
-import { authenticatePin, fetchQuickEntryUsers, isPinCryptoAvailable, PIN_CRYPTO_UNAVAILABLE, PIN_LENGTH } from '@/api/quickEntry'
+import { signIn, signOut, getSession, authorName, PIN_LENGTH } from '@/api/quickEntry'
+import { verifyPin } from '@/modules/admin/api/hitrivpis'
 
 const props = defineProps({
   show: {
@@ -18,7 +19,6 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'clear', '0', 'back']
 const pin = ref('')
 const step = ref('pin')
 const pinError = ref(null)
-const usersError = ref(null)
 const checking = ref(false)
 const user = ref(null)
 const categories = ref([])
@@ -27,7 +27,7 @@ const error = ref(null)
 const savedEvent = ref(null)
 const revealLast = ref(false)
 
-const author = computed(() => user.value?.user || user.value?.display || user.value?.priimek_ime || '')
+const author = computed(() => authorName(user.value))
 
 const digits = computed(() =>
   Array.from({ length: PIN_LENGTH }, (_, i) => {
@@ -79,22 +79,9 @@ const fetchCategories = async () => {
   }
 }
 
-const checkUsers = async () => {
-  try {
-    const users = await fetchQuickEntryUsers()
-    usersError.value = users.length ? null : 'Ni aktivnih uporabnikov za hitri vpis'
-  } catch (e) {
-    usersError.value = 'Uporabniki za hitri vpis niso dosegljivi: ' + (e.message || 'Neznana napaka')
-  }
-}
-
 const submitPin = async () => {
   pinError.value = null
 
-  if (!isPinCryptoAvailable()) {
-    pinError.value = PIN_CRYPTO_UNAVAILABLE
-    return
-  }
   if (pin.value.length !== PIN_LENGTH) {
     pinError.value = `Vnesite ${PIN_LENGTH}-mestni PIN`
     return
@@ -102,12 +89,16 @@ const submitPin = async () => {
 
   try {
     checking.value = true
-    const match = await authenticatePin(pin.value)
-    if (match) {
-      user.value = match
+    const result = await verifyPin(pin.value)
+    if (result.ok) {
+      signIn(result.user)
+      user.value = result.user
       step.value = 'form'
       clearPin()
       if (!categories.value.length) fetchCategories()
+    } else if (result.retry) {
+      pinError.value = 'Preveč poskusov. Počakajte minuto in poskusite znova.'
+      clearPin()
     } else {
       pinError.value = 'Napačen PIN'
       clearPin()
@@ -121,6 +112,7 @@ const submitPin = async () => {
 }
 
 const switchUser = () => {
+  signOut()
   user.value = null
   step.value = 'pin'
   clearPin()
@@ -223,8 +215,16 @@ const handleClose = () => {
 
 watch(() => props.show, (isOpen) => {
   if (isOpen) {
-    usersError.value = null
-    checkUsers()
+    // The tab stays signed in once a PIN has been entered, so reopening the
+    // modal does not ask again.
+    const session = getSession()
+    if (session) {
+      user.value = session
+      step.value = 'form'
+      if (!categories.value.length) fetchCategories()
+    } else {
+      step.value = 'pin'
+    }
   } else {
     pinError.value = null
     error.value = null
@@ -273,11 +273,7 @@ watch(() => props.show, (isOpen) => {
             >{{ d }}</span>
           </div>
 
-          <p v-if="usersError" class="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-3 text-sm">
-            {{ usersError }}
-          </p>
-
-          <p v-else-if="pinError" class="text-sm text-red-600 text-center mb-3">
+          <p v-if="pinError" class="text-sm text-red-600 text-center mb-3">
             <i class="fas fa-circle-exclamation mr-1"></i>{{ pinError }}
           </p>
 
@@ -290,7 +286,7 @@ watch(() => props.show, (isOpen) => {
               :class="key === 'clear' || key === 'back'
                 ? 'text-gray-500 bg-gray-100 hover:bg-gray-200'
                 : 'text-gray-800 hover:bg-gray-50'"
-              :disabled="checking || !!usersError"
+              :disabled="checking"
               @click="pressKey(key)"
             >
               <span v-if="key === 'clear'" class="text-xs font-semibold">Počisti</span>
@@ -314,7 +310,7 @@ watch(() => props.show, (isOpen) => {
             <button
               type="button"
               class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
-              :disabled="checking || !!usersError"
+              :disabled="checking"
               @click="submitPin"
             >
               <span v-if="checking" class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-1"></span>

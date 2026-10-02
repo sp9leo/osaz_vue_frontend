@@ -11,6 +11,9 @@ const isLoggedIn = ref(false)
 const isAdmin = ref(false)
 const currentUser = ref('')
 const showQuickEvent = ref(false)
+// Bumping this remounts the current view, so a quick event shows up on the calendar
+// straight away instead of after a reload.
+const viewKey = ref(0)
 
 const checkLoginStatus = async () => {
   const user = await checkAuth()
@@ -136,7 +139,7 @@ watch(() => route.fullPath, checkLoginStatus, { immediate: true })
         </div>
       </div>
     </nav>
-    <RouterView />
-    <QuickEventModal :show="showQuickEvent" @close="showQuickEvent = false" />
+    <RouterView :key="viewKey" />
+    <QuickEventModal :show="showQuickEvent" @close="showQuickEvent = false" @saved="viewKey++" />
   </div>
 </template>

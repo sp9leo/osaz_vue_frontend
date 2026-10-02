@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { derivePin, randomSalt, invalidateQuickEntryUsers, isPinCryptoAvailable, PIN_CRYPTO_UNAVAILABLE, PIN_LENGTH } from '@/api/quickEntry'
+import { randomPin, PIN_LENGTH } from '@/api/quickEntry'
 import { getQuickEntryUsers, updateQuickEntryUser } from '@/modules/admin/api/hitrivpis'
 
 const PIN_PATTERN = new RegExp(`^\\d{${PIN_LENGTH}}$`)
@@ -14,8 +14,7 @@ const selected = ref(null)
 const pin = ref('')
 const showPin = ref(null)
 
-const siteSalt = computed(() => users.value.find((user) => user.sol)?.sol || '')
-const pending = computed(() => users.value.filter((user) => !user.pin_hash).length)
+const pending = computed(() => users.value.filter((user) => !user.pin).length)
 const canSave = computed(() => !saving.value && !!selected.value && PIN_PATTERN.test(pin.value))
 
 const label = (user) => user.display || user.priimek_ime || user.name
@@ -32,12 +31,6 @@ const loadUsers = async () => {
   }
 }
 
-const randomPin = () => {
-  const values = new Uint32Array(PIN_LENGTH)
-  crypto.getRandomValues(values)
-  pin.value = Array.from(values, (v) => v % 10).join('')
-}
-
 const select = (user) => {
   selected.value = user
   pin.value = ''
@@ -51,23 +44,15 @@ const save = async () => {
   error.value = null
   notice.value = null
 
-  if (!isPinCryptoAvailable()) {
-    error.value = PIN_CRYPTO_UNAVAILABLE
-    return
-  }
-
   saving.value = true
   try {
-    const salt = siteSalt.value || randomSalt()
-    const hash = await derivePin(pin.value, salt)
-    const duplicate = users.value.find((user) => user.pin_hash === hash && user.name !== selected.value.name)
+    const duplicate = users.value.find((user) => user.pin === pin.value && user.name !== selected.value.name)
     if (duplicate) {
       error.value = `Ta PIN je že uporabljen pri uporabniku ${label(duplicate)}.`
       return
     }
 
-    await updateQuickEntryUser(selected.value.name, { pin_hash: hash, sol: salt })
-    invalidateQuickEntryUsers()
+    await updateQuickEntryUser(selected.value.name, { pin: pin.value })
     const assigned = pin.value
     const name = label(selected.value)
     pin.value = ''
@@ -81,6 +66,21 @@ const save = async () => {
       : 'Napaka: ' + (e.message || 'Neznana napaka')
   } finally {
     saving.value = false
+  }
+}
+
+const toggleAccess = async (user) => {
+  error.value = null
+  notice.value = null
+  try {
+    await updateQuickEntryUser(user.name, { dovoljen: user.dovoljen ? 0 : 1 })
+    flash(`Dostop za ${label(user)} je ${user.dovoljen ? 'izklopljen' : 'vklopljen'}.`)
+    await loadUsers()
+  } catch (e) {
+    const status = e.response?.status
+    error.value = status === 401 || status === 403
+      ? 'Frappe zavrnil zapis. Prijavite se kot Administrator ali System Manager in osvežite stran.'
+      : 'Napaka: ' + (e.message || 'Neznana napaka')
   }
 }
 
@@ -104,9 +104,9 @@ onMounted(loadUsers)
         <h2 class="text-xl font-bold text-gray-800">Hitri vpis - PIN-i</h2>
       </div>
       <p class="text-sm text-gray-500 mb-4">
-        Uporabnike dodajate in urejate v Frappe (DocType <span class="font-mono">HitriVpis</span>); tukaj
-        nastavljate le PIN-e. PIN je {{ PIN_LENGTH }} števk in se v bazi ne shranjuje - shrani se le
-        njegova PBKDF2 zgoščena vrednost.
+        Seznam uporabnikov vzamete iz Frappe (DocType <span class="font-mono">HitriVpis</span>); tukaj
+        nastavljate PIN-e in odpirate dostop za hitri vpis. PIN je {{ PIN_LENGTH }} števk, preverja se
+        na strežniku in v brskalnik nikoli ni zapisan.
       </p>
 
       <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
@@ -208,18 +208,21 @@ onMounted(loadUsers)
                 <span v-if="!user.priimek_ime && !user.user">{{ user.name }}</span>
               </div>
               <div class="text-xs text-gray-400">
-                <i class="fas fa-key mr-1"></i>{{ user.pin_hash ? 'PIN nastavljen' : 'PIN ni nastavljen' }}
+                <i class="fas fa-key mr-1"></i>{{ user.pin ? 'PIN nastavljen' : 'PIN ni nastavljen' }}
               </div>
             </div>
 
-            <span
-              class="text-xs font-semibold px-2 py-0.5 rounded-full"
-              :class="user.aktivna ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
-            >{{ user.aktivna ? 'Aktivna' : 'Neaktivna' }}</span>
+            <button
+              type="button"
+              class="text-xs font-semibold px-2 py-0.5 rounded-full transition-colors"
+              :class="user.dovoljen ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
+              :title="user.dovoljen ? 'Vklopi dostop za hitri vpis' : 'Izklopi dostop za hitri vpis'"
+              @click="toggleAccess(user)"
+            >{{ user.dovoljen ? 'Dovoljen' : 'Brez dostopa' }}</button>
 
             <div class="flex items-center gap-3 text-xs">
               <button class="text-blue-600 hover:text-blue-800" @click="select(user)">
-                <i class="fas fa-redo mr-1"></i>{{ user.pin_hash ? 'Ponastavi PIN' : 'Nastavi PIN' }}
+                <i class="fas fa-redo mr-1"></i>{{ user.pin ? 'Ponastavi PIN' : 'Nastavi PIN' }}
               </button>
             </div>
           </li>
@@ -228,8 +231,8 @@ onMounted(loadUsers)
 
       <p class="text-xs text-gray-400 mt-4">
         <i class="fas fa-circle-info mr-1"></i>
-        Zgoščene vrednosti PIN-ov so berljive vsakomur, ki odpre razvijalska orodja v brskalniku, zato je
-        zgoščevanje PBKDF2 počasno. PIN naj bo zasebni.
+        PIN preverja strežnik v Frappe, zato v brskalnik nikoli ni zapisan. Kljub temu naj bo PIN osebni:
+        kdor ga pozna, lahko vpiše dogodke v vašem imenu.
       </p>
     </div>
   </div>

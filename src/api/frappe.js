@@ -41,6 +41,16 @@ if (API_KEY && API_SECRET) {
   frappeApiRead.defaults.headers.common['Authorization'] = `token ${API_KEY}:${API_SECRET}`
 }
 
+// Offline development: serve Frappe from local data instead of the real server.
+// import.meta.env.DEV is false in a production build, so the mock and its data
+// are dropped from the bundle. Set VITE_USE_MOCK=false to reach the real server
+// while running the dev server.
+if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK !== 'false') {
+  const { installMock, mockHelpers } = await import('@/dev/mockFrappe')
+  installMock([frappeApi, frappeApiRead])
+  window.__frappeMock = mockHelpers
+}
+
 frappeApi.interceptors.response.use(
   (response) => response,
   (error) => {
