@@ -21,6 +21,8 @@ const announcements = ref([])
 const loading = ref(true)
 const loadingObvestila = ref(true)
 const todayReservations = ref([])
+const tomorrowReservations = ref([])
+const reservationDates = ref({ today: '', tomorrow: '' })
 const loadingReservations = ref(true)
 const isLoggedIn = ref(false)
 const currentUser = ref('')
@@ -277,44 +279,76 @@ const localDateString = (date) => {
   return `${year}-${month}-${day}`
 }
 
+const addDays = (date, days) => {
+  const next = new Date(date)
+  next.setDate(next.getDate() + days)
+  return next
+}
+
 const formatSlotTime = (time) => (time ? String(time).slice(0, 5) : '')
 
-// Today's room reservations come from the Bookings app. Rooms are fetched first,
-// then each room's public occupancy grid for today; the API only exposes
-// free/occupied, never booker details.
-const fetchTodayReservations = async () => {
+// Room reservations come from the Bookings app. One public occupancy call per
+// room covers today and tomorrow; the API only exposes free/occupied, never
+// booker details.
+const fetchReservations = async () => {
   loadingReservations.value = true
   try {
-    const today = localDateString(new Date())
+    const now = new Date()
+    const today = localDateString(now)
+    const tomorrow = localDateString(addDays(now, 1))
+    reservationDates.value = { today, tomorrow }
+
     const rooms = await getBookingRooms()
     const perRoom = await Promise.all(
       rooms.map(async (room) => {
-        const week = await getPublicRoomWeek(room.name, today, today)
-        if (!week || !Array.isArray(week.grid)) return []
+        const week = await getPublicRoomWeek(room.name, today, tomorrow)
+        if (!week || !Array.isArray(week.grid)) return { today: [], tomorrow: [] }
         const slots = Array.isArray(week.slots) ? week.slots : []
-        return week.grid
-          .filter((entry) => entry.date === today && entry.status === 'occupied')
-          .map((entry) => {
-            const slot = slots.find((s) => s.start === entry.time)
-            return {
-              key: `${room.name}-${entry.time}`,
-              room: room.item_name || room.name,
-              time: entry.time,
-              label: `${formatSlotTime(entry.time)} - ${formatSlotTime(slot?.end || entry.time)}`,
-            }
-          })
+        const forDate = (date) =>
+          week.grid
+            .filter((entry) => entry.date === date && entry.status === 'occupied')
+            .map((entry) => {
+              const slot = slots.find((s) => s.start === entry.time)
+              return {
+                key: `${room.name}-${date}-${entry.time}`,
+                room: room.item_name || room.name,
+                time: entry.time,
+                label: `${formatSlotTime(entry.time)} - ${formatSlotTime(slot?.end || entry.time)}`,
+              }
+            })
+        return { today: forDate(today), tomorrow: forDate(tomorrow) }
       })
     )
-    todayReservations.value = perRoom
-      .flat()
-      .sort((a, b) => a.time.localeCompare(b.time) || a.room.localeCompare(b.room, 'sl'))
+
+    const byTimeThenRoom = (a, b) =>
+      a.time.localeCompare(b.time) || a.room.localeCompare(b.room, 'sl')
+    todayReservations.value = perRoom.flatMap((day) => day.today).sort(byTimeThenRoom)
+    tomorrowReservations.value = perRoom.flatMap((day) => day.tomorrow).sort(byTimeThenRoom)
   } catch (e) {
     console.error('Error fetching reservations:', e)
     todayReservations.value = []
+    tomorrowReservations.value = []
   } finally {
     loadingReservations.value = false
   }
 }
+
+const reservationDays = computed(() => [
+  {
+    key: 'today',
+    label: 'Danes',
+    date: reservationDates.value.today,
+    empty: 'Ni rezervacij danes',
+    items: todayReservations.value,
+  },
+  {
+    key: 'tomorrow',
+    label: 'Jutri',
+    date: reservationDates.value.tomorrow,
+    empty: 'Ni rezervacij jutri',
+    items: tomorrowReservations.value,
+  },
+])
 
 const goToCalendar = () => {
   router.push('/')
@@ -324,13 +358,13 @@ const startAutoRefresh = () => {
   refreshTimer = setInterval(() => {
     fetchEvents()
     fetchObvestila()
-    fetchTodayReservations()
+    fetchReservations()
   }, refreshInterval)
 }
 
 onMounted(async () => {
   await checkLogin()
-  await Promise.all([fetchEvents(), fetchObvestila(), fetchTodayReservations()])
+  await Promise.all([fetchEvents(), fetchObvestila(), fetchReservations()])
   startAutoRefresh()
 })
 
@@ -384,14 +418,14 @@ onUnmounted(() => {
       <div class="flex flex-col gap-4">
         <!-- Weather Widget -->
         <WeatherWidget />
-        <!-- Today's room reservations (Bookings app) -->
+        <!-- Room reservations for today and tomorrow (Bookings app) -->
         <div class="shrink-0 bg-white rounded-lg shadow-sm p-4">
           <div class="flex justify-between items-center mb-2">
             <h3 class="text-base font-bold text-gray-800 flex items-center">
               <i class="fas fa-door-open text-amber-500 mr-2"></i>
-              Današnje rezervacije
-              <span v-if="todayReservations.length > 0" class="ml-2 bg-amber-100 text-amber-600 text-xs font-bold px-2 py-0.5 rounded-full">
-                {{ todayReservations.length }}
+              Rezervacija učilnic
+              <span v-if="todayReservations.length + tomorrowReservations.length > 0" class="ml-2 bg-amber-100 text-amber-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                {{ todayReservations.length + tomorrowReservations.length }}
               </span>
             </h3>
           </div>
@@ -400,22 +434,33 @@ onUnmounted(() => {
             <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-amber-500"></div>
           </div>
 
-          <div v-else-if="todayReservations.length === 0" class="flex items-center justify-center gap-2 py-3 text-sm text-gray-400">
-            <i class="fas fa-calendar-check"></i>
-            <span>Ni rezervacij danes</span>
-          </div>
+          <div v-else class="grid grid-cols-2 gap-3">
+            <div v-for="day in reservationDays" :key="day.key" class="min-w-0">
+              <div class="flex items-baseline justify-between gap-1 mb-1.5">
+                <span class="text-xs font-bold uppercase tracking-wide text-gray-500">{{ day.label }}</span>
+                <span class="text-[11px] text-gray-400 whitespace-nowrap">{{ formatDate(day.date) }}</span>
+              </div>
 
-          <ul v-else class="space-y-1 max-h-40 overflow-auto">
-            <li
-              v-for="reservation in todayReservations"
-              :key="reservation.key"
-              class="flex items-center gap-2 px-2 py-1.5 rounded bg-amber-50 border border-amber-100"
-            >
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
-              <span class="text-sm font-medium text-gray-700 truncate">{{ reservation.room }}</span>
-              <span class="ml-auto text-xs font-medium text-amber-700 whitespace-nowrap">{{ reservation.label }}</span>
-            </li>
-          </ul>
+              <div v-if="day.items.length === 0" class="flex items-center gap-1.5 py-2 text-xs text-gray-400">
+                <i class="fas fa-calendar-check"></i>
+                <span>{{ day.empty }}</span>
+              </div>
+
+              <ul v-else class="space-y-1 max-h-40 overflow-auto">
+                <li
+                  v-for="reservation in day.items"
+                  :key="reservation.key"
+                  class="px-2 py-1.5 rounded bg-amber-50 border border-amber-100 min-w-0"
+                >
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                    <span class="text-sm font-medium text-gray-700 truncate">{{ reservation.room }}</span>
+                  </div>
+                  <span class="block text-xs font-medium text-amber-700 pl-3">{{ reservation.label }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
         <!-- Announcements -->
         <div class="bg-white rounded-lg shadow-sm p-4 flex-1 overflow-auto">

@@ -399,21 +399,24 @@ const route = (method, url, params, body) => {
   }
 
   if (path === '/api/method/bookings.api.get_public_room_week' && method === 'GET') {
-    const date = params.start_date || new Date().toISOString().slice(0, 10)
+    const dateKey = (date) =>
+      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    const startDate = params.start_date || dateKey(new Date())
+    const endDate = params.end_date || startDate
     const slots = [
       { start: '08:20', end: '09:05', label: '1. ura' },
       { start: '09:10', end: '09:55', label: '2. ura' },
+      { start: '10:15', end: '11:00', label: '3. ura' },
     ]
-    return {
-      message: {
-        slots,
-        grid: slots.map((slot, index) => ({
-          date,
-          time: slot.start,
-          status: index === 0 ? 'occupied' : 'free',
-        })),
-      },
+    const grid = []
+    const end = new Date(`${endDate}T00:00:00`)
+    for (const cursor = new Date(`${startDate}T00:00:00`); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+      const date = dateKey(cursor)
+      slots.forEach((slot, index) => {
+        grid.push({ date, time: slot.start, status: index === 0 ? 'occupied' : 'free' })
+      })
     }
+    return { message: { slots, grid } }
   }
 
   throw Object.assign(new Error(`MOCK has no route for ${method} ${path}`), { status: 404 })
