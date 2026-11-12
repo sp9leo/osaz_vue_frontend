@@ -91,6 +91,12 @@ npm run build
 
 ### Quick event entry
 
+> **Development only.** The PIN flow and the `/admin/uporabniki` page are gated by
+> `quickEntryEnabled` in `src/config/features.js` (`import.meta.env.DEV`). Production builds
+> do not include the toolbar button, the PIN modal or the PIN admin route, because
+> `intranet.api.verify_pin` is not deployed on the live site yet. To expose it in a
+> production build, set the flag to `true` after the backend endpoint is in place.
+
 The "Hitri vpis" button in the toolbar lets anyone post an event after entering a 6-digit PIN,
 without a full Frappe login. Every user has their own PIN; the PIN identifies the person, who is
 then stored as "Dodal" on the event.

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { checkAuth, getAuthUsername, isFrappeAdmin } from '@/api/frappe'
+import { quickEntryEnabled } from '@/config/features'
 
 const routes = [
   {
@@ -46,12 +47,18 @@ const routes = [
     component: () => import('@/modules/calendar/views/EditObvestiloPage.vue'),
     meta: { requiresAuth: true },
   },
-  {
-    path: '/admin/uporabniki',
-    name: 'admin-uporabniki',
-    component: () => import('@/modules/admin/views/UsersPage.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true },
-  },
+  // PIN management exists only where quick entry does. In a production build
+  // this route is never registered and its chunk is not emitted.
+  ...(quickEntryEnabled
+    ? [
+        {
+          path: '/admin/uporabniki',
+          name: 'admin-uporabniki',
+          component: () => import('@/modules/admin/views/UsersPage.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true },
+        },
+      ]
+    : []),
   {
     path: '/login',
     name: 'login',
@@ -65,6 +72,11 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
+  if (!quickEntryEnabled && to.path.startsWith('/admin/uporabniki')) {
+    next({ name: 'home' })
+    return
+  }
+
   if (!to.meta.requiresAuth && !to.meta.requiresAdmin) {
     next()
     return

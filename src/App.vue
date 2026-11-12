@@ -1,8 +1,14 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { defineAsyncComponent, ref, watch } from 'vue'
 import { RouterView, RouterLink, useRoute, useRouter } from 'vue-router'
 import { checkAuth, getAuthUsername, isFrappeAdmin, logout } from '@/api/frappe'
-import QuickEventModal from '@/components/QuickEventModal.vue'
+import { quickEntryEnabled } from '@/config/features'
+
+// Imported only when quick entry is enabled, so the production bundle does not
+// contain the PIN screen (nor the quick-entry API client it pulls in).
+const QuickEventModal = quickEntryEnabled
+  ? defineAsyncComponent(() => import('@/components/QuickEventModal.vue'))
+  : null
 
 const route = useRoute()
 const router = useRouter()
@@ -84,6 +90,7 @@ watch(() => route.fullPath, checkLoginStatus, { immediate: true })
           </div>
           <div class="flex items-center">
             <button
+              v-if="quickEntryEnabled"
               @click="showQuickEvent = true"
               class="mr-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors"
             >
@@ -108,7 +115,7 @@ watch(() => route.fullPath, checkLoginStatus, { immediate: true })
             </RouterLink>
 
             <RouterLink
-              v-if="isAdmin"
+              v-if="isAdmin && quickEntryEnabled"
               to="/admin/uporabniki"
               class="mr-4 px-3 py-1.5 bg-gray-700 hover:bg-gray-800 text-white text-sm font-medium rounded-md transition-colors"
             >
@@ -140,6 +147,11 @@ watch(() => route.fullPath, checkLoginStatus, { immediate: true })
       </div>
     </nav>
     <RouterView :key="viewKey" />
-    <QuickEventModal :show="showQuickEvent" @close="showQuickEvent = false" @saved="viewKey++" />
+    <QuickEventModal
+      v-if="quickEntryEnabled"
+      :show="showQuickEvent"
+      @close="showQuickEvent = false"
+      @saved="viewKey++"
+    />
   </div>
 </template>
