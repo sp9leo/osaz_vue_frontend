@@ -45,6 +45,18 @@ src/
 - **ArchivePage**: All events with search/filter and month navigation
 - **EventDetailPage**: Individual event view
 
+### Dashboard room reservations
+
+`DashboardPage.vue` shows a "Današnje rezervacije" card fed by the Bookings app on the same
+Frappe site, using its guest-readable methods:
+
+- `bookings.api.get_rooms` — active rooms
+- `bookings.api.get_public_room_week` — occupancy grid, one call per room for today
+
+The API exposes only free/occupied slots, never booker names or contact details. Room names
+and time ranges are rendered with amber styling to match the Bookings room identity. In
+offline dev mode (`VITE_USE_MOCK`), `src/dev/mockFrappe.js` returns a sample room and slot.
+
 ### [Future] Planner Module
 Reserved for event planning functionality.
 

@@ -390,6 +390,32 @@ const route = (method, url, params, body) => {
     return { data: updateResource(state, 'Obvestila', name, body) }
   }
 
+  if (path === '/api/method/bookings.api.get_rooms' && method === 'GET') {
+    return {
+      message: [
+        { name: 'ITM-0003', item_name: 'Računalnica 1', item_type: 'Room', is_active: 1 },
+      ],
+    }
+  }
+
+  if (path === '/api/method/bookings.api.get_public_room_week' && method === 'GET') {
+    const date = params.start_date || new Date().toISOString().slice(0, 10)
+    const slots = [
+      { start: '08:20', end: '09:05', label: '1. ura' },
+      { start: '09:10', end: '09:55', label: '2. ura' },
+    ]
+    return {
+      message: {
+        slots,
+        grid: slots.map((slot, index) => ({
+          date,
+          time: slot.start,
+          status: index === 0 ? 'occupied' : 'free',
+        })),
+      },
+    }
+  }
+
   throw Object.assign(new Error(`MOCK has no route for ${method} ${path}`), { status: 404 })
 }
 

@@ -27,7 +27,7 @@ const frappeApi = axios.create({
   },
 })
 
-const frappeApiRead = axios.create({
+export const frappeApiRead = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {

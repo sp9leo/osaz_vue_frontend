@@ -7,6 +7,7 @@ import EditObvestiloModal from '@/components/EditObvestiloModal.vue'
 import { getEventsInRange } from '@/modules/calendar/api/events'
 import { getAllObvestila } from '@/modules/calendar/api/obvestila'
 import { checkAuth, getAuthUsername } from '@/api/frappe'
+import { getBookingRooms, getPublicRoomWeek } from '@/api/bookings'
 import { getQuoteOfTheDay } from '@/data/quotes'
 
 const router = useRouter()
@@ -19,6 +20,8 @@ const nextWeekEvents = ref([])
 const announcements = ref([])
 const loading = ref(true)
 const loadingObvestila = ref(true)
+const todayReservations = ref([])
+const loadingReservations = ref(true)
 const isLoggedIn = ref(false)
 const currentUser = ref('')
 const refreshInterval = 60000
@@ -267,6 +270,52 @@ const fetchObvestila = async () => {
 }
 
 
+const localDateString = (date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const formatSlotTime = (time) => (time ? String(time).slice(0, 5) : '')
+
+// Today's room reservations come from the Bookings app. Rooms are fetched first,
+// then each room's public occupancy grid for today; the API only exposes
+// free/occupied, never booker details.
+const fetchTodayReservations = async () => {
+  loadingReservations.value = true
+  try {
+    const today = localDateString(new Date())
+    const rooms = await getBookingRooms()
+    const perRoom = await Promise.all(
+      rooms.map(async (room) => {
+        const week = await getPublicRoomWeek(room.name, today, today)
+        if (!week || !Array.isArray(week.grid)) return []
+        const slots = Array.isArray(week.slots) ? week.slots : []
+        return week.grid
+          .filter((entry) => entry.date === today && entry.status === 'occupied')
+          .map((entry) => {
+            const slot = slots.find((s) => s.start === entry.time)
+            return {
+              key: `${room.name}-${entry.time}`,
+              room: room.item_name || room.name,
+              time: entry.time,
+              label: `${formatSlotTime(entry.time)} - ${formatSlotTime(slot?.end || entry.time)}`,
+            }
+          })
+      })
+    )
+    todayReservations.value = perRoom
+      .flat()
+      .sort((a, b) => a.time.localeCompare(b.time) || a.room.localeCompare(b.room, 'sl'))
+  } catch (e) {
+    console.error('Error fetching reservations:', e)
+    todayReservations.value = []
+  } finally {
+    loadingReservations.value = false
+  }
+}
+
 const goToCalendar = () => {
   router.push('/')
 }
@@ -275,12 +324,13 @@ const startAutoRefresh = () => {
   refreshTimer = setInterval(() => {
     fetchEvents()
     fetchObvestila()
+    fetchTodayReservations()
   }, refreshInterval)
 }
 
 onMounted(async () => {
   await checkLogin()
-  await Promise.all([fetchEvents(), fetchObvestila()])
+  await Promise.all([fetchEvents(), fetchObvestila(), fetchTodayReservations()])
   startAutoRefresh()
 })
 
@@ -334,9 +384,42 @@ onUnmounted(() => {
       <div class="flex flex-col gap-4">
         <!-- Weather Widget -->
         <WeatherWidget />
-        
+        <!-- Today's room reservations (Bookings app) -->
+        <div class="shrink-0 bg-white rounded-lg shadow-sm p-4">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-base font-bold text-gray-800 flex items-center">
+              <i class="fas fa-door-open text-amber-500 mr-2"></i>
+              Današnje rezervacije
+              <span v-if="todayReservations.length > 0" class="ml-2 bg-amber-100 text-amber-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                {{ todayReservations.length }}
+              </span>
+            </h3>
+          </div>
+
+          <div v-if="loadingReservations" class="flex justify-center py-3">
+            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-amber-500"></div>
+          </div>
+
+          <div v-else-if="todayReservations.length === 0" class="flex items-center justify-center gap-2 py-3 text-sm text-gray-400">
+            <i class="fas fa-calendar-check"></i>
+            <span>Ni rezervacij danes</span>
+          </div>
+
+          <ul v-else class="space-y-1 max-h-40 overflow-auto">
+            <li
+              v-for="reservation in todayReservations"
+              :key="reservation.key"
+              class="flex items-center gap-2 px-2 py-1.5 rounded bg-amber-50 border border-amber-100"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+              <span class="text-sm font-medium text-gray-700 truncate">{{ reservation.room }}</span>
+              <span class="ml-auto text-xs font-medium text-amber-700 whitespace-nowrap">{{ reservation.label }}</span>
+            </li>
+          </ul>
+        </div>
         <!-- Announcements -->
         <div class="bg-white rounded-lg shadow-sm p-4 flex-1 overflow-auto">
+        
           <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
             <i class="fas fa-bullhorn text-blue-500 mr-2"></i>
             Obvestila
@@ -381,6 +464,8 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
+
+        
       </div>
       
       <!-- Middle Column: Today's Events -->
@@ -431,8 +516,10 @@ onUnmounted(() => {
       
       <!-- Right Column: This Week & Next Week -->
       <div class="flex flex-col gap-4">
+      
         <div class="bg-white rounded-lg shadow-sm flex-1 flex flex-col overflow-hidden">
           <div class="p-4 flex-1 flex flex-col overflow-hidden">
+          
             <div class="flex justify-between items-center mb-2">
               <h3 class="text-lg font-bold text-gray-800 flex items-center">
                 <i class="fas fa-calendar-week text-purple-500 mr-2"></i>
@@ -442,6 +529,7 @@ onUnmounted(() => {
                 </span>
               </h3>
             </div>
+            
             
             <div v-if="loading" class="flex justify-center items-center flex-1">
               <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
