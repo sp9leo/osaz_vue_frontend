@@ -50,6 +50,7 @@ const handleSubmit = async () => {
       description: form.value.description,
       event_category: form.value.event_category,
       location: form.value.location,
+      custom_added_by: currentUser.value,
       predvideno: form.value.predvideno ? 1 : 0,
       status: form.value.status,
       published: form.value.published ? 1 : 0,
@@ -74,8 +75,6 @@ onMounted(async () => {
   }
   isAuthenticated.value = true
   currentUser.value = user || username || ''
-  currentUser.value = user
-  form.value.custom_added_by = user
   await fetchCategories()
 })
 </script>

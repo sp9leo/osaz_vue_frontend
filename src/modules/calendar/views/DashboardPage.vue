@@ -6,7 +6,7 @@ import EventCard from '@/components/EventCard.vue'
 import EditObvestiloModal from '@/components/EditObvestiloModal.vue'
 import { getEventsInRange } from '@/modules/calendar/api/events'
 import { getAllObvestila } from '@/modules/calendar/api/obvestila'
-import { checkAuth, getAuthUsername } from '@/api/frappe'
+import { checkAuth, getAuthUsername, isFrappeAdmin } from '@/api/frappe'
 import { getBookingRooms, getPublicRoomWeek } from '@/api/bookings'
 import { getQuoteOfTheDay } from '@/data/quotes'
 
@@ -25,6 +25,7 @@ const tomorrowReservations = ref([])
 const reservationDates = ref({ today: '', tomorrow: '' })
 const loadingReservations = ref(true)
 const isLoggedIn = ref(false)
+const isAdmin = ref(false)
 const currentUser = ref('')
 const refreshInterval = 60000
 const expandedObvestila = ref(new Set())
@@ -100,6 +101,7 @@ const checkLogin = async () => {
   const username = getAuthUsername()
   isLoggedIn.value = !!(user || username)
   currentUser.value = username || user || ''
+  isAdmin.value = isLoggedIn.value ? await isFrappeAdmin(username || user) : false
 }
 
 watch(isLoggedIn, (newVal) => {
@@ -389,7 +391,7 @@ onUnmounted(() => {
             <div class="flex justify-between items-start">
               <h4 class="font-semibold text-gray-800">{{ item.title }}</h4>
               <div class="flex items-center gap-2">
-                <button v-if="isLoggedIn" 
+                <button v-if="isAdmin" 
                         @click="openEditModal(item)"
                         class="text-xs text-blue-600 hover:text-blue-800">
                   <i class="fas fa-edit"></i>
@@ -488,7 +490,7 @@ onUnmounted(() => {
                  class="border-l-4 border-blue-500 pl-3 py-1 group">
               <div class="flex justify-between items-start">
                 <h4 class="font-semibold text-gray-800 text-sm">{{ item.title }}</h4>
-                <button v-if="isLoggedIn" 
+                <button v-if="isAdmin" 
                         @click="openEditModal(item)"
                         class="text-xs text-blue-600 hover:text-blue-800 opacity-0 group-hover:opacity-100 transition-opacity">
                   <i class="fas fa-edit"></i>

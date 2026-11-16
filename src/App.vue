@@ -106,7 +106,7 @@ watch(() => route.fullPath, checkLoginStatus, { immediate: true })
               Dodaj dogodek
             </RouterLink>
             <RouterLink
-              v-if="isLoggedIn"
+              v-if="isAdmin"
               to="/obvestilo/new"
               class="mr-4 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors"
             >

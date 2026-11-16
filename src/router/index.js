@@ -39,13 +39,13 @@ const routes = [
     path: '/obvestilo/new',
     name: 'obvestilo-new',
     component: () => import('@/modules/calendar/views/AddObvestiloPage.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: '/obvestilo/:name/edit',
     name: 'obvestilo-edit',
     component: () => import('@/modules/calendar/views/EditObvestiloPage.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   // PIN management exists only where quick entry does. In a production build
   // this route is never registered and its chunk is not emitted.
